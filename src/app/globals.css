@@ -8,31 +8,42 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --background: 60 67% 91%; /* Soft Beige #F5F5DC */
+    --foreground: 60 10% 20%; /* Dark Olive/Brown for text on beige */
+    
+    --card: 60 67% 95%; /* Slightly lighter beige for cards */
+    --card-foreground: 60 10% 20%;
+    
+    --popover: 60 67% 95%;
+    --popover-foreground: 60 10% 20%;
+    
+    --primary: 140 27% 34%; /* Forest Green #3F704F */
+    --primary-foreground: 0 0% 98%; /* Default light for contrast */
+    
+    --secondary: 140 15% 60%; /* Lighter, desaturated Forest Green */
+    --secondary-foreground: 60 10% 20%;
+    
+    --muted: 60 50% 88%; /* More muted beige */
+    --muted-foreground: 60 10% 40%; /* Slightly lighter than main foreground */
+    
+    --accent: 20 60% 50%; /* Burnt Orange #CC6633 */
+    --accent-foreground: 0 0% 98%; /* Default light for contrast */
+    
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    
+    --border: 60 30% 80%; /* Subtle beige-toned border */
+    --input: 60 30% 80%;
+    --ring: 20 60% 50%; /* Accent color for rings */
+
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    /* Sidebar variables - retain for existing sidebar component, can be adjusted if sidebar becomes primary UI */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -43,6 +54,7 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
+    /* Default dark theme values, can be customized later if dark mode is a requirement */
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
