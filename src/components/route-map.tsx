@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { APIProvider, Map, AdvancedMarker, useMap, InfoWindow, Polyline } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, useMap, InfoWindow } from '@vis.gl/react-google-maps';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Route as RouteIcon } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
@@ -27,6 +27,7 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeMarker, setActiveMarker] = useState<GeocodedAddress | null>(null);
+  const polylineRef = useRef<google.maps.Polyline | null>(null);
 
   const displayedAddresses = optimizedRoute && optimizedRoute.length > 0 ? optimizedRoute : addresses;
 
@@ -116,8 +117,29 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
 
   }, [map, addresses, optimizedRoute]);
 
+  useEffect(() => {
+    if (!map) return;
 
-  const routePath = directions?.routes[0]?.overview_path.map(p => ({ lat: p.lat(), lng: p.lng() }));
+    // Clear existing polyline
+    if (polylineRef.current) {
+      polylineRef.current.setMap(null);
+    }
+
+    if (directions && directions.routes && directions.routes.length > 0) {
+      const route = directions.routes[0];
+      // Create and set new polyline
+      const newPolyline = new google.maps.Polyline({
+        path: route.overview_path,
+        geodesic: true,
+        strokeColor: 'hsl(140, 27%, 34%)', // primary color
+        strokeOpacity: 0.8,
+        strokeWeight: 6,
+      });
+
+      newPolyline.setMap(map);
+      polylineRef.current = newPolyline;
+    }
+  }, [map, directions]);
 
   return (
     <>
@@ -150,14 +172,6 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
             <p className="font-semibold text-sm">{activeMarker.address}</p>
           </div>
         </InfoWindow>
-      )}
-      {routePath && (
-         <Polyline
-            path={routePath}
-            strokeColor="hsl(var(--primary))"
-            strokeOpacity={0.8}
-            strokeWeight={6}
-          />
       )}
     </>
   );
