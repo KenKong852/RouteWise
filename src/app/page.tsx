@@ -8,12 +8,12 @@ import { RouteMap } from '@/components/route-map';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPinned, AlertCircle, CheckCircle, ChevronsUpDown } from 'lucide-react';
+import { MapPinned, AlertCircle, CheckCircle } from 'lucide-react';
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { getCountryFromCoordinates } from '@/lib/utils';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerTrigger } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 
 export default function HomePage() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -142,15 +142,6 @@ export default function HomePage() {
         </div>
 
         <Drawer>
-          <DrawerTrigger asChild>
-              <Button 
-                variant="default" 
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full py-6 text-lg"
-              >
-                  <ChevronsUpDown className="mr-2" />
-                  Manage Route
-              </Button>
-          </DrawerTrigger>
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
               <DrawerHeader className="text-left">
                   <DrawerTitle>Plan Your Route</DrawerTitle>
