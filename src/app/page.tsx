@@ -13,7 +13,7 @@ import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { getCountryFromCoordinates } from '@/lib/utils';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerTrigger } from '@/components/ui/drawer';
 
 export default function HomePage() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -141,21 +141,21 @@ export default function HomePage() {
             />
         </div>
 
-        <Sheet>
-          <SheetTrigger asChild>
+        <Drawer>
+          <DrawerTrigger asChild>
               <Button 
                 variant="default" 
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full py-6 text-lg shadow-lg"
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full py-6 text-lg"
               >
                   <ChevronsUpDown className="mr-2" />
                   Manage Route
               </Button>
-          </SheetTrigger>
-          <SheetContent side="bottom" hideOverlay={true} className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm rounded-t-xl">
-              <SheetHeader>
-                  <SheetTitle>Plan Your Route</SheetTitle>
-                  <SheetDescription>Add addresses and optimize your journey.</SheetDescription>
-              </SheetHeader>
+          </DrawerTrigger>
+          <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
+              <DrawerHeader className="text-left">
+                  <DrawerTitle>Plan Your Route</DrawerTitle>
+                  <DrawerDescription>Add addresses and optimize your journey.</DrawerDescription>
+              </DrawerHeader>
               <div className="flex-grow overflow-y-auto p-4">
                   <div className="space-y-6 max-w-2xl mx-auto">
                       <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} />
@@ -198,8 +198,8 @@ export default function HomePage() {
                       )}
                   </div>
               </div>
-            </SheetContent>
-        </Sheet>
+            </DrawerContent>
+        </Drawer>
       </main>
     </div>
   );
