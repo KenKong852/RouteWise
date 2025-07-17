@@ -59,8 +59,7 @@ function MapView({ addresses, optimizedRoute, mapCenter }: { addresses: string[]
     Promise.all(
       displayedAddresses.map(address =>
         new Promise<GeocodedAddress | null>((resolve) => {
-          const bounds = map.getBounds();
-          geocoder.geocode({ address, bounds }, (results, status) => {
+          geocoder.geocode({ address }, (results, status) => {
             if (status === 'OK' && results?.[0]) {
               resolve({
                 address,
@@ -82,30 +81,42 @@ function MapView({ addresses, optimizedRoute, mapCenter }: { addresses: string[]
       setGeocodedAddresses(validResults);
       
       if (validResults.length > 0) {
-        const newBounds = new google.maps.LatLngBounds();
-        validResults.forEach(point => newBounds.extend(point.position));
-        map.fitBounds(newBounds);
-        if (validResults.length === 1) {
-          map.setZoom(Math.min(map.getZoom() ?? USER_LOCATION_ZOOM, 15));
+        if (!optimizedRoute || optimizedRoute.length === 0) {
+           const newBounds = new google.maps.LatLngBounds();
+            validResults.forEach(point => newBounds.extend(point.position));
+            map.fitBounds(newBounds);
+            if (validResults.length === 1) {
+              map.setZoom(Math.min(map.getZoom() ?? USER_LOCATION_ZOOM, 15));
+            }
         }
       }
 
-      if (optimizedRoute && optimizedRoute.length >= 2 && validResults.length >=2) {
+      if (optimizedRoute && optimizedRoute.length >= 2) {
         const waypointsForRoute = validResults.filter(ga => optimizedRoute.includes(ga.address));
-        if (waypointsForRoute.length < 2) {
+        // Reorder waypoints to match the optimized route order
+        const orderedWaypoints = optimizedRoute
+          .map(addr => waypointsForRoute.find(wp => wp.address === addr))
+          .filter((wp): wp is GeocodedAddress => wp !== undefined);
+
+
+        if (orderedWaypoints.length < 2) {
           setDirections(null);
           return;
         }
 
         const directionsService = new google.maps.DirectionsService();
         directionsService.route({
-          origin: waypointsForRoute[0].address,
-          destination: waypointsForRoute[waypointsForRoute.length - 1].address,
-          waypoints: waypointsForRoute.slice(1, -1).map(ga => ({ location: ga.address, stopover: true })),
+          origin: orderedWaypoints[0].address,
+          destination: orderedWaypoints[orderedWaypoints.length - 1].address,
+          waypoints: orderedWaypoints.slice(1, -1).map(ga => ({ location: ga.address, stopover: true })),
           travelMode: google.maps.TravelMode.DRIVING,
         }, (result, status) => {
           if (status === 'OK' && result) {
             setDirections(result);
+            // Fit map to the route bounds
+            if (result.routes?.[0]?.bounds) {
+              map.fitBounds(result.routes[0].bounds);
+            }
           } else {
             console.error(`Directions request failed due to ${status}`);
             setError('Could not calculate directions for the optimized route.');
@@ -125,7 +136,7 @@ function MapView({ addresses, optimizedRoute, mapCenter }: { addresses: string[]
       setIsLoading(false);
     });
 
-  }, [map, addresses, optimizedRoute]);
+  }, [map, addresses.join(','), optimizedRoute?.join(',')]); // Depend on joined strings to prevent unnecessary runs
 
   useEffect(() => {
     if (!map) return;
