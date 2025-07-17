@@ -12,8 +12,8 @@ import { MapPinned, AlertCircle, CheckCircle, ChevronsUpDown } from 'lucide-reac
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
-import { getCountryFromCoordinates } from '@/lib/utils';
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger, SheetPortal } from '@/components/ui/sheet';
+import { getCountryFromCoordinates, getAddressFromCoordinates } from '@/lib/utils';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerTrigger, DrawerPortal } from '@/components/ui/drawer';
 
 export default function HomePage() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -141,8 +141,8 @@ export default function HomePage() {
             />
         </div>
 
-        <Sheet>
-          <SheetTrigger asChild>
+        <Drawer.Root>
+          <DrawerTrigger asChild>
               <Button 
                 variant="default" 
                 className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 shadow-lg rounded-full py-6 text-lg"
@@ -150,15 +150,15 @@ export default function HomePage() {
                   <ChevronsUpDown className="mr-2" />
                   Manage Route
               </Button>
-          </SheetTrigger>
-          <SheetPortal>
-            <SheetContent side="bottom" className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm" hideOverlay>
-                <SheetHeader>
-                    <SheetTitle>Plan Your Route</SheetTitle>
-                    <SheetDescription>Add addresses and optimize your journey.</SheetDescription>
-                </SheetHeader>
-                <div className="flex-grow overflow-y-auto p-1">
-                    <div className="space-y-6">
+          </DrawerTrigger>
+          <DrawerPortal>
+            <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
+                <DrawerHeader>
+                    <DrawerTitle>Plan Your Route</DrawerTitle>
+                    <DrawerDescription>Add addresses and optimize your journey.</DrawerDescription>
+                </DrawerHeader>
+                <div className="flex-grow overflow-y-auto p-4">
+                    <div className="space-y-6 max-w-2xl mx-auto">
                         <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenterMap} />
                         <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
                         
@@ -199,9 +199,9 @@ export default function HomePage() {
                         )}
                     </div>
                 </div>
-              </SheetContent>
-          </SheetPortal>
-        </Sheet>
+              </DrawerContent>
+          </DrawerPortal>
+        </Drawer.Root>
       </main>
     </div>
   );
