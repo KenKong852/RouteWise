@@ -8,10 +8,10 @@ import { PlusCircle, Camera, LocateFixed } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { recognizeAddressAction } from '@/lib/actions';
-import { getAddressFromCoordinates } from '@/lib/utils';
 
 interface AddressInputFormProps {
   onAddressAdd: (address: string) => void;
+  onRecenter: (coords: { lat: number; lng: number }) => void;
 }
 
 const fileToDataUri = (file: File): Promise<string> => {
@@ -23,7 +23,7 @@ const fileToDataUri = (file: File): Promise<string> => {
   });
 };
 
-export function AddressInputForm({ onAddressAdd }: AddressInputFormProps) {
+export function AddressInputForm({ onAddressAdd, onRecenter }: AddressInputFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -47,31 +47,9 @@ export function AddressInputForm({ onAddressAdd }: AddressInputFormProps) {
      if ('geolocation' in navigator) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const address = await getAddressFromCoordinates(position.coords.latitude, position.coords.longitude);
-            if (address) {
-              onAddressAdd(address);
-              toast({
-                title: "Location Added",
-                description: address,
-              });
-            } else {
-               toast({
-                title: "Could Not Find Address",
-                description: "Your current location could not be converted to an address.",
-                variant: "destructive",
-              });
-            }
-          } catch (error) {
-             toast({
-                title: "Geocoding Error",
-                description: "Failed to get address from your location.",
-                variant: "destructive",
-              });
-          } finally {
-            setIsLocating(false);
-          }
+        (position) => {
+          onRecenter({ lat: position.coords.latitude, lng: position.coords.longitude });
+          setIsLocating(false);
         },
         (error) => {
             let description = "An unknown error occurred.";
@@ -147,7 +125,7 @@ export function AddressInputForm({ onAddressAdd }: AddressInputFormProps) {
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-xl">Add Addresses</CardTitle>
-        <CardDescription>Enter addresses manually, by photo, or your current location.</CardDescription>
+        <CardDescription>Enter addresses manually, by photo, or use your location.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
