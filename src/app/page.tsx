@@ -12,8 +12,8 @@ import { MapPinned, AlertCircle, CheckCircle, ChevronsUpDown } from 'lucide-reac
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
-import { getCountryFromCoordinates, getAddressFromCoordinates } from '@/lib/utils';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerTrigger, DrawerPortal } from '@/components/ui/drawer';
+import { getCountryFromCoordinates } from '@/lib/utils';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 
 export default function HomePage() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -80,7 +80,7 @@ export default function HomePage() {
     setError(null);
   };
   
-  const handleRecenterMap = (coords: { lat: number, lng: number }) => {
+  const handleRecenter = (coords: { lat: number, lng: number }) => {
     setMapCenter(coords);
     toast({
       title: "Map Relocated",
@@ -141,67 +141,65 @@ export default function HomePage() {
             />
         </div>
 
-        <Drawer.Root>
-          <DrawerTrigger asChild>
+        <Sheet>
+          <SheetTrigger asChild>
               <Button 
                 variant="default" 
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 shadow-lg rounded-full py-6 text-lg"
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 rounded-full py-6 text-lg shadow-lg"
               >
                   <ChevronsUpDown className="mr-2" />
                   Manage Route
               </Button>
-          </DrawerTrigger>
-          <DrawerPortal>
-            <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
-                <DrawerHeader>
-                    <DrawerTitle>Plan Your Route</DrawerTitle>
-                    <DrawerDescription>Add addresses and optimize your journey.</DrawerDescription>
-                </DrawerHeader>
-                <div className="flex-grow overflow-y-auto p-4">
-                    <div className="space-y-6 max-w-2xl mx-auto">
-                        <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenterMap} />
-                        <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
-                        
-                        <div className="flex gap-2">
-                        <Button 
-                            onClick={handleOptimizeRoute} 
-                            disabled={isOptimizing || addresses.length < 2}
-                            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
-                            aria-label="Optimize current route"
-                        >
-                            {isOptimizing ? (
-                            <Spinner className="mr-2 h-5 w-5" />
-                            ) : (
-                            <MapPinned className="mr-2 h-5 w-5" />
-                            )}
-                            {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
-                        </Button>
-                        </div>
+          </SheetTrigger>
+          <SheetContent side="bottom" hideOverlay={true} className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm rounded-t-xl">
+              <SheetHeader>
+                  <SheetTitle>Plan Your Route</SheetTitle>
+                  <SheetDescription>Add addresses and optimize your journey.</SheetDescription>
+              </SheetHeader>
+              <div className="flex-grow overflow-y-auto p-4">
+                  <div className="space-y-6 max-w-2xl mx-auto">
+                      <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} />
+                      <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
+                      
+                      <div className="flex gap-2">
+                      <Button 
+                          onClick={handleOptimizeRoute} 
+                          disabled={isOptimizing || addresses.length < 2}
+                          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
+                          aria-label="Optimize current route"
+                      >
+                          {isOptimizing ? (
+                          <Spinner className="mr-2 h-5 w-5" />
+                          ) : (
+                          <MapPinned className="mr-2 h-5 w-5" />
+                          )}
+                          {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
+                      </Button>
+                      </div>
 
-                        {error && (
-                        <Alert variant="destructive" className="shadow-md">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                        )}
+                      {error && (
+                      <Alert variant="destructive" className="shadow-md">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertTitle>Error</AlertTitle>
+                          <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                      )}
 
-                        {optimizedRouteReasoning && (
-                        <Card className="shadow-lg">
-                            <CardHeader>
-                            <CardTitle className="font-headline text-lg">AI Optimization Insights</CardTitle>
-                            <CardDescription>How your route was optimized:</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                            <p className="text-sm text-muted-foreground">{optimizedRouteReasoning}</p>
-                            </CardContent>
-                        </Card>
-                        )}
-                    </div>
-                </div>
-              </DrawerContent>
-          </DrawerPortal>
-        </Drawer.Root>
+                      {optimizedRouteReasoning && (
+                      <Card className="shadow-lg">
+                          <CardHeader>
+                          <CardTitle className="font-headline text-lg">AI Optimization Insights</CardTitle>
+                          <CardDescription>How your route was optimized:</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                          <p className="text-sm text-muted-foreground">{optimizedRouteReasoning}</p>
+                          </CardContent>
+                      </Card>
+                      )}
+                  </div>
+              </div>
+            </SheetContent>
+        </Sheet>
       </main>
     </div>
   );
