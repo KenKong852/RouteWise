@@ -10,6 +10,7 @@ interface RouteMapProps {
   addresses: string[]; // Could be unsorted or optimized
   optimizedRoute?: string[]; // The AI optimized route strings
   apiKey: string | undefined;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 interface GeocodedAddress {
@@ -17,8 +18,9 @@ interface GeocodedAddress {
   position: google.maps.LatLngLiteral;
 }
 
-const DEFAULT_CENTER = { lat: 37.0902, lng: -95.7129 }; // Center of USA
+const FALLBACK_CENTER = { lat: 37.0902, lng: -95.7129 }; // Center of USA
 const DEFAULT_ZOOM = 4;
+const USER_LOCATION_ZOOM = 12;
 
 function MapView({ addresses, optimizedRoute }: { addresses: string[], optimizedRoute?: string[] }) {
   const map = useMap();
@@ -35,7 +37,6 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
     if (!map || displayedAddresses.length === 0) {
       setGeocodedAddresses([]);
       setDirections(null);
-      map?.moveCamera({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
       return;
     }
 
@@ -46,7 +47,8 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
     Promise.all(
       displayedAddresses.map(address =>
         new Promise<GeocodedAddress | null>((resolve) => {
-          geocoder.geocode({ address }, (results, status) => {
+          const bounds = map.getBounds();
+          geocoder.geocode({ address, bounds }, (results, status) => {
             if (status === 'OK' && results?.[0]) {
               resolve({
                 address,
@@ -68,22 +70,18 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
       setGeocodedAddresses(validResults);
       
       if (validResults.length > 0) {
-        const bounds = new google.maps.LatLngBounds();
-        validResults.forEach(point => bounds.extend(point.position));
-        map.fitBounds(bounds);
-        // Add a bit of padding if only one point
+        const newBounds = new google.maps.LatLngBounds();
+        validResults.forEach(point => newBounds.extend(point.position));
+        map.fitBounds(newBounds);
         if (validResults.length === 1) {
-          map.setZoom(Math.min(map.getZoom() ?? DEFAULT_ZOOM, 15));
+          map.setZoom(Math.min(map.getZoom() ?? USER_LOCATION_ZOOM, 15));
         }
-      } else {
-         map.moveCamera({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
       }
 
       if (optimizedRoute && optimizedRoute.length >= 2 && validResults.length >=2) {
-        // Ensure geocoded points match the order and count of optimized route for DirectionsService
         const waypointsForRoute = validResults.filter(ga => optimizedRoute.includes(ga.address));
         if (waypointsForRoute.length < 2) {
-          setDirections(null); // Not enough valid points for a route
+          setDirections(null);
           return;
         }
 
@@ -92,7 +90,7 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
           origin: waypointsForRoute[0].address,
           destination: waypointsForRoute[waypointsForRoute.length - 1].address,
           waypoints: waypointsForRoute.slice(1, -1).map(ga => ({ location: ga.address, stopover: true })),
-          travelMode: google.maps.TravelMode.DRIVING, // Default to driving
+          travelMode: google.maps.TravelMode.DRIVING,
         }, (result, status) => {
           if (status === 'OK' && result) {
             setDirections(result);
@@ -103,7 +101,7 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
           }
         });
       } else {
-        setDirections(null); // Clear directions if not an optimized route or not enough points
+        setDirections(null);
       }
 
     })
@@ -120,22 +118,19 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
   useEffect(() => {
     if (!map) return;
 
-    // Clear existing polyline
     if (polylineRef.current) {
       polylineRef.current.setMap(null);
     }
 
     if (directions && directions.routes && directions.routes.length > 0) {
       const route = directions.routes[0];
-      // Create and set new polyline
       const newPolyline = new google.maps.Polyline({
         path: route.overview_path,
         geodesic: true,
-        strokeColor: 'hsl(140, 27%, 34%)', // primary color
+        strokeColor: 'hsl(140, 27%, 34%)',
         strokeOpacity: 0.8,
         strokeWeight: 6,
       });
-
       newPolyline.setMap(map);
       polylineRef.current = newPolyline;
     }
@@ -178,7 +173,8 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
 }
 
 
-export function RouteMap({ addresses, optimizedRoute, apiKey }: RouteMapProps) {
+export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation }: RouteMapProps) {
+  
   if (!apiKey) {
     return (
       <Card className="shadow-lg h-full flex flex-col">
@@ -201,15 +197,15 @@ export function RouteMap({ addresses, optimizedRoute, apiKey }: RouteMapProps) {
           <RouteIcon /> Route Map
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow p-0 relative"> {/* p-0 to make map fill content area */}
+      <CardContent className="flex-grow p-0 relative">
         <APIProvider apiKey={apiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps">
-            <div className="w-full h-[400px] lg:h-full rounded-b-lg overflow-hidden"> {/* Ensure map has explicit height */}
+            <div className="w-full h-[400px] lg:h-full rounded-b-lg overflow-hidden">
               <Map
-                defaultCenter={DEFAULT_CENTER}
-                defaultZoom={DEFAULT_ZOOM}
+                defaultCenter={userLocation ?? FALLBACK_CENTER}
+                defaultZoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
                 gestureHandling={'greedy'}
                 disableDefaultUI={true}
-                mapId="routeWiseMap" // Optional: for custom map styling
+                mapId="routeWiseMap"
               >
                 <MapView addresses={addresses} optimizedRoute={optimizedRoute} />
               </Map>

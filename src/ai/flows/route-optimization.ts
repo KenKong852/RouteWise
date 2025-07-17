@@ -1,13 +1,5 @@
 'use server';
 
-/**
- * @fileOverview This file contains the Genkit flow for optimizing a route based on a list of addresses.
- *
- * - optimizeRouteWithAI - A function that takes a list of addresses and returns an optimized route.
- * - OptimizeRouteInput - The input type for the optimizeRouteWithAI function.
- * - OptimizeRouteOutput - The return type for the optimizeRouteWithAI function.
- */
-
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
@@ -15,6 +7,10 @@ const OptimizeRouteInputSchema = z.object({
   addresses: z
     .array(z.string())
     .describe('An array of addresses to be optimized in terms of routing distance.'),
+  userLocation: z
+    .string()
+    .optional()
+    .describe('The users current location to provide context for the route optimization.'),
 });
 export type OptimizeRouteInput = z.infer<typeof OptimizeRouteInputSchema>;
 
@@ -39,6 +35,10 @@ const optimizeRoutePrompt = ai.definePrompt({
   prompt: `You are a route optimization expert. Given a list of addresses, you will determine the most efficient route to visit each address, minimizing travel distance.
 
 Addresses: {{addresses}}
+
+{{#if userLocation}}
+The user is starting from the following location, which should be treated as the starting point: {{userLocation}}.
+{{/if}}
 
 Consider factors such as distance between addresses, traffic patterns, and road conditions (if available) to create the optimal route. Provide a clear explanation of your reasoning for the chosen route.
 

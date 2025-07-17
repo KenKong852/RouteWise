@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/header';
 import { AddressInputForm } from '@/components/address-input-form';
 import { AddressList } from '@/components/address-list';
@@ -12,6 +12,7 @@ import { MapPinned, AlertCircle, CheckCircle } from 'lucide-react';
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
+import { getCountryFromCoordinates } from '@/lib/utils';
 
 export default function HomePage() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -19,9 +20,35 @@ export default function HomePage() {
   const [optimizedRouteReasoning, setOptimizedRouteReasoning] = useState<string | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [country, setCountry] = useState<string | null>(null);
   const { toast } = useToast();
 
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({
+            lat: latitude,
+            lng: longitude,
+          });
+          const countryCode = await getCountryFromCoordinates(latitude, longitude);
+          setCountry(countryCode);
+        },
+        error => {
+          console.error("Geolocation error:", error);
+          toast({
+            title: "Location Access Denied",
+            description: "Your location could not be determined. The map will default to a broader view.",
+            variant: "default",
+          });
+        }
+      );
+    }
+  }, [toast]);
 
   const handleAddressAdd = (address: string) => {
     if (addresses.includes(address)) {
@@ -62,7 +89,7 @@ export default function HomePage() {
     setOptimizedRouteReasoning(null);
 
     try {
-      const result = await optimizeRouteAction({ addresses });
+      const result = await optimizeRouteAction({ addresses, userLocation: userLocation ? `${userLocation.lat},${userLocation.lng}` : undefined });
       setOptimizedRoute(result.optimizedRoute);
       setOptimizedRouteReasoning(result.reasoning);
       toast({
@@ -135,6 +162,8 @@ export default function HomePage() {
               addresses={addresses} 
               optimizedRoute={optimizedRoute}
               apiKey={googleMapsApiKey} 
+              userLocation={userLocation}
+              country={country}
             />
           </div>
         </div>
