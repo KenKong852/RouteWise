@@ -141,7 +141,7 @@ export default function HomePage() {
             />
         </div>
 
-        <Drawer.Root>
+        <Drawer>
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
               <DrawerHeader className="text-left">
                   <DrawerTitle>Plan Your Route</DrawerTitle>
@@ -190,7 +190,7 @@ export default function HomePage() {
                   </div>
               </div>
             </DrawerContent>
-        </Drawer.Root>
+        </Drawer>
       </main>
     </div>
   );
