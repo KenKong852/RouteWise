@@ -11,6 +11,7 @@ import { recognizeAddressAction } from '@/lib/actions';
 
 interface AddressInputFormProps {
   onAddressAdd: (address: string) => void;
+  onRecenterMap: () => void;
 }
 
 const fileToDataUri = (file: File): Promise<string> => {
@@ -22,7 +23,7 @@ const fileToDataUri = (file: File): Promise<string> => {
   });
 };
 
-export function AddressInputForm({ onAddressAdd }: AddressInputFormProps) {
+export function AddressInputForm({ onAddressAdd, onRecenterMap }: AddressInputFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -42,54 +43,11 @@ export function AddressInputForm({ onAddressAdd }: AddressInputFormProps) {
     }
   };
 
-    const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      toast({
-        title: "Geolocation Not Supported",
-        description: "Your browser does not support geolocation.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleGetLocation = () => {
     setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        // Use Google's Geocoding API to get the address
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
-          setIsLocating(false);
-          if (status === 'OK' && results?.[0]) {
-            onAddressAdd(results[0].formatted_address);
-            toast({
-              title: "Location Added",
-              description: results[0].formatted_address,
-            });
-          } else {
-            toast({
-              title: "Geocoding Failed",
-              description: "Could not determine address from your location.",
-              variant: "destructive",
-            });
-          }
-        });
-      },
-      (error) => {
-        setIsLocating(false);
-        let description = "An unknown error occurred.";
-        if (error.code === error.PERMISSION_DENIED) {
-            description = "Please allow location access to use this feature.";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-            description = "Your location information is currently unavailable.";
-        }
-        toast({
-          title: "Could Not Get Location",
-          description,
-          variant: "destructive",
-        });
-      }
-    );
+    onRecenterMap();
+    // A short delay to allow the user to see the button is working before re-enabling it.
+    setTimeout(() => setIsLocating(false), 1000);
   };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {

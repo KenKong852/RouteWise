@@ -11,6 +11,7 @@ interface RouteMapProps {
   optimizedRoute?: string[]; // The AI optimized route strings
   apiKey: string | undefined;
   userLocation?: { lat: number; lng: number } | null;
+  mapCenter?: { lat: number; lng: number } | null;
 }
 
 interface GeocodedAddress {
@@ -173,7 +174,7 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
 }
 
 
-export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation }: RouteMapProps) {
+export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation, mapCenter }: RouteMapProps) {
   
   if (!apiKey) {
     return (
@@ -201,7 +202,7 @@ export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation }: Ro
         <APIProvider apiKey={apiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps">
             <div className="w-full h-[400px] lg:h-full rounded-b-lg overflow-hidden">
               <Map
-                defaultCenter={userLocation ?? FALLBACK_CENTER}
+                center={mapCenter ?? FALLBACK_CENTER}
                 defaultZoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
                 gestureHandling={'greedy'}
                 disableDefaultUI={true}

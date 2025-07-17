@@ -21,6 +21,7 @@ export default function HomePage() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
   const [country, setCountry] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -31,10 +32,12 @@ export default function HomePage() {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          setUserLocation({
+          const location = {
             lat: latitude,
             lng: longitude,
-          });
+          };
+          setUserLocation(location);
+          setMapCenter(location);
           const countryCode = await getCountryFromCoordinates(latitude, longitude);
           setCountry(countryCode);
         },
@@ -71,6 +74,40 @@ export default function HomePage() {
     setOptimizedRoute([]);
     setOptimizedRouteReasoning(null);
     setError(null);
+  };
+
+  const handleRecenterMap = () => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setMapCenter({ lat: latitude, lng: longitude });
+           toast({
+              title: "Map Relocated",
+              description: "The map has been centered to your current location.",
+            });
+        },
+        (error) => {
+            let description = "An unknown error occurred.";
+            if (error.code === error.PERMISSION_DENIED) {
+                description = "Please allow location access to use this feature.";
+            } else if (error.code === error.POSITION_UNAVAILABLE) {
+                description = "Your location information is currently unavailable.";
+            }
+            toast({
+              title: "Could Not Get Location",
+              description,
+              variant: "destructive",
+            });
+        }
+      );
+    } else {
+        toast({
+            title: "Geolocation Not Supported",
+            description: "Your browser does not support geolocation.",
+            variant: "destructive",
+        });
+    }
   };
 
   const handleOptimizeRoute = async () => {
@@ -118,7 +155,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full">
           {/* Left Column: Inputs and Controls */}
           <div className="lg:col-span-1 space-y-6 flex flex-col">
-            <AddressInputForm onAddressAdd={handleAddressAdd} />
+            <AddressInputForm onAddressAdd={handleAddressAdd} onRecenterMap={handleRecenterMap} />
             <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
             
             <Button 
@@ -163,6 +200,7 @@ export default function HomePage() {
               optimizedRoute={optimizedRoute}
               apiKey={googleMapsApiKey} 
               userLocation={userLocation}
+              mapCenter={mapCenter}
               country={country}
             />
           </div>
