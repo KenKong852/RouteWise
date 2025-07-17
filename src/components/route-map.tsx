@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -136,7 +137,7 @@ function MapView({ addresses, optimizedRoute, mapCenter }: { addresses: string[]
       setIsLoading(false);
     });
 
-  }, [map, addresses.join(','), optimizedRoute?.join(',')]); // Depend on joined strings to prevent unnecessary runs
+  }, [map, addresses.join(','), optimizedRoute?.join(',')]);
 
   useEffect(() => {
     if (!map) return;
@@ -224,8 +225,8 @@ export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation, mapC
         <APIProvider apiKey={apiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps">
             <div className="w-full h-[400px] lg:h-full rounded-b-lg overflow-hidden">
               <Map
-                center={mapCenter ?? FALLBACK_CENTER}
-                zoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
+                defaultCenter={mapCenter ?? FALLBACK_CENTER}
+                defaultZoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
                 gestureHandling={'greedy'}
                 disableDefaultUI={true}
                 mapId="routeWiseMap"
