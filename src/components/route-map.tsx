@@ -25,7 +25,7 @@ const FALLBACK_CENTER = { lat: 37.0902, lng: -95.7129 }; // Center of USA
 const DEFAULT_ZOOM = 4;
 const USER_LOCATION_ZOOM = 12;
 
-function MapView({ addresses, optimizedRoute, mapCenter }: { addresses: string[], optimizedRoute?: string[], mapCenter?: { lat: number; lng: number } | null; }) {
+function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter }: { addresses: string[], optimizedRoute?: string[], mapCenter?: { lat: number; lng: number } | null; }) {
   const map = useMap();
   const [geocodedAddresses, setGeocodedAddresses] = useState<GeocodedAddress[]>([]);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
@@ -37,11 +37,11 @@ function MapView({ addresses, optimizedRoute, mapCenter }: { addresses: string[]
   const displayedAddresses = optimizedRoute && optimizedRoute.length > 0 ? optimizedRoute : addresses;
 
   useEffect(() => {
-    if (map && mapCenter) {
-      map.panTo(mapCenter);
+    if (map && controlledMapCenter) {
+      map.panTo(controlledMapCenter);
       map.setZoom(USER_LOCATION_ZOOM);
     }
-  }, [map, mapCenter]);
+  }, [map, controlledMapCenter]);
 
   useEffect(() => {
     if (!map || displayedAddresses.length === 0) {

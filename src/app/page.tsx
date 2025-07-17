@@ -8,7 +8,7 @@ import { RouteMap } from '@/components/route-map';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPinned, AlertCircle, CheckCircle } from 'lucide-react';
+import { MapPinned, AlertCircle, CheckCircle, LocateFixed } from 'lucide-react';
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
@@ -38,8 +38,12 @@ export default function HomePage() {
           };
           setUserLocation(location);
           setMapCenter(location);
-          const countryCode = await getCountryFromCoordinates(latitude, longitude);
-          setCountry(countryCode);
+          try {
+            const countryCode = await getCountryFromCoordinates(latitude, longitude);
+            setCountry(countryCode);
+          } catch (e) {
+             console.error("Could not get country from coordinates", e)
+          }
         },
         error => {
           console.error("Geolocation error:", error);
@@ -75,7 +79,7 @@ export default function HomePage() {
     setOptimizedRouteReasoning(null);
     setError(null);
   };
-
+  
   const handleRecenterMap = () => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -109,6 +113,7 @@ export default function HomePage() {
         });
     }
   };
+
 
   const handleOptimizeRoute = async () => {
     if (addresses.length < 2) {
@@ -155,22 +160,34 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full">
           {/* Left Column: Inputs and Controls */}
           <div className="lg:col-span-1 space-y-6 flex flex-col">
-            <AddressInputForm onAddressAdd={handleAddressAdd} onRecenterMap={handleRecenterMap} />
+            <AddressInputForm onAddressAdd={handleAddressAdd} />
             <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
             
-            <Button 
-              onClick={handleOptimizeRoute} 
-              disabled={isOptimizing || addresses.length < 2}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
-              aria-label="Optimize current route"
-            >
-              {isOptimizing ? (
-                <Spinner className="mr-2 h-5 w-5" />
-              ) : (
-                <MapPinned className="mr-2 h-5 w-5" />
-              )}
-              {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleOptimizeRoute} 
+                disabled={isOptimizing || addresses.length < 2}
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
+                aria-label="Optimize current route"
+              >
+                {isOptimizing ? (
+                  <Spinner className="mr-2 h-5 w-5" />
+                ) : (
+                  <MapPinned className="mr-2 h-5 w-5" />
+                )}
+                {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
+              </Button>
+              <Button
+                onClick={handleRecenterMap}
+                variant="outline"
+                size="icon"
+                aria-label="Recenter map to your location"
+                className="py-3 shadow-md"
+              >
+                <LocateFixed />
+              </Button>
+            </div>
+
 
             {error && (
               <Alert variant="destructive" className="shadow-md">

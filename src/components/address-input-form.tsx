@@ -8,10 +8,10 @@ import { PlusCircle, Camera, LocateFixed } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { recognizeAddressAction } from '@/lib/actions';
+import { getAddressFromCoordinates } from '@/lib/utils';
 
 interface AddressInputFormProps {
   onAddressAdd: (address: string) => void;
-  onRecenterMap: () => void;
 }
 
 const fileToDataUri = (file: File): Promise<string> => {
@@ -23,7 +23,7 @@ const fileToDataUri = (file: File): Promise<string> => {
   });
 };
 
-export function AddressInputForm({ onAddressAdd, onRecenterMap }: AddressInputFormProps) {
+export function AddressInputForm({ onAddressAdd }: AddressInputFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -44,10 +44,57 @@ export function AddressInputForm({ onAddressAdd, onRecenterMap }: AddressInputFo
   };
 
   const handleGetLocation = () => {
-    setIsLocating(true);
-    onRecenterMap();
-    // A short delay to allow the user to see the button is working before re-enabling it.
-    setTimeout(() => setIsLocating(false), 1000);
+     if ('geolocation' in navigator) {
+      setIsLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const address = await getAddressFromCoordinates(position.coords.latitude, position.coords.longitude);
+            if (address) {
+              onAddressAdd(address);
+              toast({
+                title: "Location Added",
+                description: address,
+              });
+            } else {
+               toast({
+                title: "Could Not Find Address",
+                description: "Your current location could not be converted to an address.",
+                variant: "destructive",
+              });
+            }
+          } catch (error) {
+             toast({
+                title: "Geocoding Error",
+                description: "Failed to get address from your location.",
+                variant: "destructive",
+              });
+          } finally {
+            setIsLocating(false);
+          }
+        },
+        (error) => {
+            let description = "An unknown error occurred.";
+            if (error.code === error.PERMISSION_DENIED) {
+                description = "Please allow location access to use this feature.";
+            } else if (error.code === error.POSITION_UNAVAILABLE) {
+                description = "Your location information is currently unavailable.";
+            }
+            toast({
+              title: "Could Not Get Location",
+              description,
+              variant: "destructive",
+            });
+            setIsLocating(false);
+        }
+      );
+    } else {
+        toast({
+            title: "Geolocation Not Supported",
+            description: "Your browser does not support geolocation.",
+            variant: "destructive",
+        });
+    }
   };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +147,7 @@ export function AddressInputForm({ onAddressAdd, onRecenterMap }: AddressInputFo
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-xl">Add Addresses</CardTitle>
-        <CardDescription>Enter addresses manually or upload photos.</CardDescription>
+        <CardDescription>Enter addresses manually, by photo, or your current location.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
@@ -116,7 +163,7 @@ export function AddressInputForm({ onAddressAdd, onRecenterMap }: AddressInputFo
             <PlusCircle className="mr-2 h-5 w-5" /> Add
           </Button>
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Input
             type="file"
             accept="image/*"
@@ -138,20 +185,21 @@ export function AddressInputForm({ onAddressAdd, onRecenterMap }: AddressInputFo
             ) : (
               <Camera className="mr-2 h-5 w-5" />
             )}
-            {isRecognizing ? 'Recognizing...' : 'Upload Photo'}
+            {isRecognizing ? 'Recognizing...' : 'From Photo'}
           </Button>
            <Button
             onClick={handleGetLocation}
             variant="outline"
-            size="icon"
+            className="w-full"
             disabled={isLocating || isRecognizing}
             aria-label="Use current location"
           >
             {isLocating ? (
-                <Spinner />
+                <Spinner className="mr-2 h-5 w-5" />
             ) : (
-                <LocateFixed />
+                <LocateFixed className="mr-2 h-5 w-5" />
             )}
+            {isLocating ? 'Locating...' : 'My Location'}
           </Button>
         </div>
       </CardContent>
