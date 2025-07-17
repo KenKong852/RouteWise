@@ -201,41 +201,28 @@ export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation, mapC
   
   if (!apiKey) {
     return (
-      <Card className="shadow-lg h-full flex flex-col">
-        <CardHeader>
-          <CardTitle className="font-headline text-xl flex items-center gap-2"><RouteIcon /> Route Map</CardTitle>
-        </CardHeader>
-        <CardContent className="flex-grow flex items-center justify-center">
-          <p className="text-destructive-foreground bg-destructive p-4 rounded-md">
+      <div className="h-full flex items-center justify-center bg-muted">
+        <p className="text-destructive-foreground bg-destructive p-4 rounded-md shadow-lg">
             Google Maps API Key is not configured. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.
-          </p>
-        </CardContent>
-      </Card>
+        </p>
+      </div>
     );
   }
   
   return (
-    <Card className="shadow-lg h-full flex flex-col">
-      <CardHeader>
-        <CardTitle className="font-headline text-xl flex items-center gap-2">
-          <RouteIcon /> Route Map
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow p-0 relative">
+    <div className="h-full w-full">
         <APIProvider apiKey={apiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps">
-            <div className="w-full h-[400px] lg:h-full rounded-b-lg overflow-hidden">
-              <Map
+            <Map
                 defaultCenter={mapCenter ?? FALLBACK_CENTER}
                 defaultZoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
                 gestureHandling={'greedy'}
                 disableDefaultUI={true}
                 mapId="routeWiseMap"
+                className="h-full w-full"
               >
                 <MapView addresses={addresses} optimizedRoute={optimizedRoute} mapCenter={mapCenter} />
-              </Map>
-            </div>
+            </Map>
         </APIProvider>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

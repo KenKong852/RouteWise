@@ -8,11 +8,12 @@ import { RouteMap } from '@/components/route-map';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPinned, AlertCircle, CheckCircle } from 'lucide-react';
+import { MapPinned, AlertCircle, CheckCircle, ChevronsUpDown } from 'lucide-react';
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { getCountryFromCoordinates } from '@/lib/utils';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 export default function HomePage() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -67,7 +68,6 @@ export default function HomePage() {
       return;
     }
     setAddresses((prev) => [...prev, address]);
-    // Clear previous optimization if addresses change
     setOptimizedRoute([]);
     setOptimizedRouteReasoning(null);
     setError(null);
@@ -127,54 +127,10 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-background text-foreground">
       <Header />
-      <main className="flex-grow container mx-auto p-4 lg:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full">
-          {/* Left Column: Inputs and Controls */}
-          <div className="lg:col-span-1 space-y-6 flex flex-col">
-            <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenterMap} />
-            <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
-            
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleOptimizeRoute} 
-                disabled={isOptimizing || addresses.length < 2}
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
-                aria-label="Optimize current route"
-              >
-                {isOptimizing ? (
-                  <Spinner className="mr-2 h-5 w-5" />
-                ) : (
-                  <MapPinned className="mr-2 h-5 w-5" />
-                )}
-                {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
-              </Button>
-            </div>
-
-            {error && (
-              <Alert variant="destructive" className="shadow-md">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {optimizedRouteReasoning && (
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle className="font-headline text-lg">AI Optimization Insights</CardTitle>
-                  <CardDescription>How your route was optimized:</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{optimizedRouteReasoning}</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Right Column: Map */}
-          <div className="lg:col-span-2 h-[500px] lg:h-auto"> {/* Ensure map area has height */}
+      <main className="flex-grow relative">
+        <div className="absolute inset-0 h-full w-full">
             <RouteMap 
               addresses={addresses} 
               optimizedRoute={optimizedRoute}
@@ -183,12 +139,68 @@ export default function HomePage() {
               mapCenter={mapCenter}
               country={country}
             />
-          </div>
         </div>
+
+        <Sheet>
+          <SheetTrigger asChild>
+              <Button 
+                variant="default" 
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 shadow-lg rounded-full py-6 text-lg"
+              >
+                  <ChevronsUpDown className="mr-2" />
+                  Manage Route
+              </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="z-20 max-h-[90vh] flex flex-col">
+            <SheetHeader>
+                <SheetTitle>Plan Your Route</SheetTitle>
+                <SheetDescription>Add addresses and optimize your journey.</SheetDescription>
+            </SheetHeader>
+            <div className="flex-grow overflow-y-auto p-1">
+                <div className="space-y-6">
+                    <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenterMap} />
+                    <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
+                    
+                    <div className="flex gap-2">
+                    <Button 
+                        onClick={handleOptimizeRoute} 
+                        disabled={isOptimizing || addresses.length < 2}
+                        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
+                        aria-label="Optimize current route"
+                    >
+                        {isOptimizing ? (
+                        <Spinner className="mr-2 h-5 w-5" />
+                        ) : (
+                        <MapPinned className="mr-2 h-5 w-5" />
+                        )}
+                        {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
+                    </Button>
+                    </div>
+
+                    {error && (
+                    <Alert variant="destructive" className="shadow-md">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                    )}
+
+                    {optimizedRouteReasoning && (
+                    <Card className="shadow-lg">
+                        <CardHeader>
+                        <CardTitle className="font-headline text-lg">AI Optimization Insights</CardTitle>
+                        <CardDescription>How your route was optimized:</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        <p className="text-sm text-muted-foreground">{optimizedRouteReasoning}</p>
+                        </CardContent>
+                    </Card>
+                    )}
+                </div>
+            </div>
+          </SheetContent>
+        </Sheet>
       </main>
-      <footer className="text-center p-4 text-muted-foreground text-sm border-t border-border mt-8">
-        <p>&copy; {new Date().getFullYear()} RouteWise. Smart navigation for everyone.</p>
-      </footer>
     </div>
   );
 }
