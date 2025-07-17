@@ -23,7 +23,7 @@ interface GeocodedAddress {
 
 const FALLBACK_CENTER = { lat: 37.0902, lng: -95.7129 }; // Center of USA
 const DEFAULT_ZOOM = 4;
-const USER_LOCATION_ZOOM = 12;
+const USER_LOCATION_ZOOM = 15;
 
 function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter }: { addresses: string[], optimizedRoute?: string[], mapCenter?: { lat: number; lng: number } | null; }) {
   const map = useMap();
