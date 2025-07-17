@@ -12,6 +12,7 @@ interface RouteMapProps {
   apiKey: string | undefined;
   userLocation?: { lat: number; lng: number } | null;
   mapCenter?: { lat: number; lng: number } | null;
+  country?: string | null;
 }
 
 interface GeocodedAddress {
@@ -23,7 +24,7 @@ const FALLBACK_CENTER = { lat: 37.0902, lng: -95.7129 }; // Center of USA
 const DEFAULT_ZOOM = 4;
 const USER_LOCATION_ZOOM = 12;
 
-function MapView({ addresses, optimizedRoute }: { addresses: string[], optimizedRoute?: string[] }) {
+function MapView({ addresses, optimizedRoute, mapCenter }: { addresses: string[], optimizedRoute?: string[], mapCenter?: { lat: number; lng: number } | null; }) {
   const map = useMap();
   const [geocodedAddresses, setGeocodedAddresses] = useState<GeocodedAddress[]>([]);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
@@ -35,9 +36,19 @@ function MapView({ addresses, optimizedRoute }: { addresses: string[], optimized
   const displayedAddresses = optimizedRoute && optimizedRoute.length > 0 ? optimizedRoute : addresses;
 
   useEffect(() => {
+    if (map && mapCenter) {
+      map.panTo(mapCenter);
+      map.setZoom(USER_LOCATION_ZOOM);
+    }
+  }, [map, mapCenter]);
+
+  useEffect(() => {
     if (!map || displayedAddresses.length === 0) {
       setGeocodedAddresses([]);
       setDirections(null);
+      if (polylineRef.current) {
+        polylineRef.current.setMap(null);
+      }
       return;
     }
 
@@ -203,12 +214,12 @@ export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation, mapC
             <div className="w-full h-[400px] lg:h-full rounded-b-lg overflow-hidden">
               <Map
                 center={mapCenter ?? FALLBACK_CENTER}
-                defaultZoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
+                zoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
                 gestureHandling={'greedy'}
                 disableDefaultUI={true}
                 mapId="routeWiseMap"
               >
-                <MapView addresses={addresses} optimizedRoute={optimizedRoute} />
+                <MapView addresses={addresses} optimizedRoute={optimizedRoute} mapCenter={mapCenter} />
               </Map>
             </div>
         </APIProvider>
