@@ -164,7 +164,7 @@ export default function HomePage() {
                       <div className="flex gap-2">
                       <Button 
                           onClick={handleOptimizeRoute} 
-                          disabled={isOptimizing || addresses.length < 2}
+                           disabled={isOptimizing || addresses.length < 2}
                           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
                           aria-label="Optimize current route"
                       >
