@@ -8,7 +8,7 @@ import { RouteMap } from '@/components/route-map';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPinned, AlertCircle, CheckCircle } from 'lucide-react';
+import { MapPinned, AlertCircle, CheckCircle, PanelTopOpen } from 'lucide-react';
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
@@ -23,8 +23,9 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
   const [country, setCountry] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(true);
   const [activeSnapPoint, setActiveSnapPoint] = useState<number | string | null>(0.5);
-
+  
   const { toast } = useToast();
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -51,6 +52,18 @@ export default function HomePage() {
       );
     }
   }, [toast]);
+  
+  const handleActiveSnapPointChange = (snapPoint: number | string | null) => {
+    if (snapPoint === 0.15) {
+      setIsOpen(false);
+    }
+    setActiveSnapPoint(snapPoint);
+  };
+  
+  const handleOpenDrawer = () => {
+    setIsOpen(true);
+    setActiveSnapPoint(0.5);
+  };
 
   const handleAddressAdd = (address: string) => {
     if (addresses.includes(address)) {
@@ -136,10 +149,11 @@ export default function HomePage() {
         </div>
         
         <Drawer
-          open={true}
+          open={isOpen}
+          onOpenChange={setIsOpen}
           snapPoints={[0.15, 0.5, 1]}
           activeSnapPoint={activeSnapPoint}
-          onActiveSnapPointChange={setActiveSnapPoint}
+          onActiveSnapPointChange={handleActiveSnapPointChange}
         >
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
             <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
@@ -191,6 +205,18 @@ export default function HomePage() {
               </div>
             </DrawerContent>
         </Drawer>
+         {!isOpen && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30">
+            <Button
+              onClick={handleOpenDrawer}
+              className="py-3 text-lg shadow-lg"
+              aria-label="Open route planner"
+            >
+              <PanelTopOpen className="mr-2 h-5 w-5" />
+              Plan Route
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );
