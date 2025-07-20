@@ -24,6 +24,7 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
   const [country, setCountry] = useState<string | null>(null);
+  const [activeSnapPoint, setActiveSnapPoint] = useState<number | string | null>(0.5);
   const { toast } = useToast();
 
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -141,7 +142,12 @@ export default function HomePage() {
             />
         </div>
 
-        <Drawer open={true} snapPoints={[0.1, 0.5, 1]} >
+        <Drawer 
+          open={true}
+          snapPoints={[0.1, 0.5, 1]}
+          activeSnapPoint={activeSnapPoint}
+          onActiveSnapPointChange={setActiveSnapPoint}
+        >
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
               <DrawerHeader className="text-left">
                   <DrawerTitle>Plan Your Route</DrawerTitle>
