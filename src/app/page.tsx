@@ -24,9 +24,10 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
   const [country, setCountry] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [activeSnapPoint, setActiveSnapPoint] = useState<number | string | null>(0.5);
-  const { toast } = useToast();
 
+  const { toast } = useToast();
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   useEffect(() => {
@@ -126,6 +127,18 @@ export default function HomePage() {
       setIsOptimizing(false);
     }
   };
+  
+  const handleSnapChange = (snapPoint: number | string | null) => {
+    setActiveSnapPoint(snapPoint);
+    if (snapPoint === 0.1) {
+        setIsDrawerOpen(false);
+    }
+  }
+
+  const openDrawer = () => {
+    setIsDrawerOpen(true);
+    setActiveSnapPoint(0.5);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
@@ -142,11 +155,12 @@ export default function HomePage() {
             />
         </div>
         
-        <Drawer 
-          open={true}
+        <Drawer
+          open={isDrawerOpen}
+          onOpenChange={setIsDrawerOpen}
           snapPoints={[0.1, 0.5, 1]}
           activeSnapPoint={activeSnapPoint}
-          onActiveSnapPointChange={setActiveSnapPoint}
+          onActiveSnapPointChange={handleSnapChange}
         >
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
               <DrawerHeader className="text-left">
@@ -198,10 +212,10 @@ export default function HomePage() {
             </DrawerContent>
         </Drawer>
         
-        {activeSnapPoint === 0.1 && (
+        {!isDrawerOpen && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
                 <Button 
-                    onClick={() => setActiveSnapPoint(0.5)}
+                    onClick={openDrawer}
                     className="rounded-full shadow-lg"
                     aria-label="Open route planner"
                 >
