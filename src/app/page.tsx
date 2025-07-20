@@ -141,7 +141,7 @@ export default function HomePage() {
             />
         </div>
 
-        <Drawer open={true} snapPoints={[0.5, 1]} activeSnapPoint={0.5}>
+        <Drawer open={true} snapPoints={[0.1, 0.5, 1]} >
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
               <DrawerHeader className="text-left">
                   <DrawerTitle>Plan Your Route</DrawerTitle>
