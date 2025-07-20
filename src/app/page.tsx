@@ -142,19 +142,6 @@ export default function HomePage() {
             />
         </div>
         
-        {activeSnapPoint === 0.1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
-                <Button 
-                    onClick={() => setActiveSnapPoint(0.5)}
-                    className="rounded-full shadow-lg"
-                    aria-label="Open route planner"
-                >
-                    <PanelTopOpen className="mr-2 h-5 w-5" />
-                    Plan Route
-                </Button>
-            </div>
-        )}
-
         <Drawer 
           open={true}
           snapPoints={[0.1, 0.5, 1]}
@@ -210,6 +197,19 @@ export default function HomePage() {
               </div>
             </DrawerContent>
         </Drawer>
+        
+        {activeSnapPoint === 0.1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
+                <Button 
+                    onClick={() => setActiveSnapPoint(0.5)}
+                    className="rounded-full shadow-lg"
+                    aria-label="Open route planner"
+                >
+                    <PanelTopOpen className="mr-2 h-5 w-5" />
+                    Plan Route
+                </Button>
+            </div>
+        )}
       </main>
     </div>
   );
