@@ -6,6 +6,7 @@ import { APIProvider, Map, AdvancedMarker, useMap, InfoWindow } from '@vis.gl/re
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Route as RouteIcon } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
+import { getCountryFromCoordinates } from '@/lib/utils';
 
 interface RouteMapProps {
   addresses: string[]; // Could be unsorted or optimized
@@ -14,6 +15,7 @@ interface RouteMapProps {
   userLocation?: { lat: number; lng: number } | null;
   mapCenter?: { lat: number; lng: number } | null;
   country?: string | null;
+  onCountryChange: (country: string | null) => void;
 }
 
 interface GeocodedAddress {
@@ -25,7 +27,7 @@ const FALLBACK_CENTER = { lat: 37.0902, lng: -95.7129 }; // Center of USA
 const DEFAULT_ZOOM = 4;
 const USER_LOCATION_ZOOM = 15;
 
-function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter }: { addresses: string[], optimizedRoute?: string[], mapCenter?: { lat: number; lng: number } | null; }) {
+function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter, userLocation, onCountryChange }: { addresses: string[], optimizedRoute?: string[], mapCenter?: { lat: number; lng: number } | null; userLocation?: { lat: number; lng: number } | null; onCountryChange: (country: string | null) => void; }) {
   const map = useMap();
   const [geocodedAddresses, setGeocodedAddresses] = useState<GeocodedAddress[]>([]);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
@@ -35,6 +37,15 @@ function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter }: 
   const polylineRef = useRef<google.maps.Polyline | null>(null);
 
   const displayedAddresses = optimizedRoute && optimizedRoute.length > 0 ? optimizedRoute : addresses;
+
+  useEffect(() => {
+    if (map && userLocation) {
+        getCountryFromCoordinates(userLocation.lat, userLocation.lng)
+            .then(onCountryChange)
+            .catch(e => console.error("Could not get country from coordinates", e));
+    }
+  }, [map, userLocation, onCountryChange]);
+
 
   useEffect(() => {
     if (map && controlledMapCenter) {
@@ -197,7 +208,7 @@ function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter }: 
 }
 
 
-export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation, mapCenter }: RouteMapProps) {
+export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation, mapCenter, onCountryChange }: RouteMapProps) {
   
   if (!apiKey) {
     return (
@@ -220,7 +231,7 @@ export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation, mapC
                 mapId="routeWiseMap"
                 className="h-full w-full"
               >
-                <MapView addresses={addresses} optimizedRoute={optimizedRoute} mapCenter={mapCenter} />
+                <MapView addresses={addresses} optimizedRoute={optimizedRoute} mapCenter={mapCenter} userLocation={userLocation} onCountryChange={onCountryChange} />
             </Map>
         </APIProvider>
     </div>

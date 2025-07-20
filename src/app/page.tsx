@@ -12,7 +12,6 @@ import { MapPinned, AlertCircle, CheckCircle, PanelTopOpen } from 'lucide-react'
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
-import { getCountryFromCoordinates } from '@/lib/utils';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 
 export default function HomePage() {
@@ -33,7 +32,7 @@ export default function HomePage() {
   useEffect(() => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude } = position.coords;
           const location = {
             lat: latitude,
@@ -41,12 +40,6 @@ export default function HomePage() {
           };
           setUserLocation(location);
           setMapCenter(location);
-          try {
-            const countryCode = await getCountryFromCoordinates(latitude, longitude);
-            setCountry(countryCode);
-          } catch (e) {
-             console.error("Could not get country from coordinates", e)
-          }
         },
         error => {
           console.error("Geolocation error:", error);
@@ -152,6 +145,7 @@ export default function HomePage() {
               userLocation={userLocation}
               mapCenter={mapCenter}
               country={country}
+              onCountryChange={setCountry}
             />
         </div>
         
