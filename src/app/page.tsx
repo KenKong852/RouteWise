@@ -8,7 +8,7 @@ import { RouteMap } from '@/components/route-map';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPinned, AlertCircle, CheckCircle } from 'lucide-react';
+import { MapPinned, AlertCircle, CheckCircle, PanelTopOpen } from 'lucide-react';
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
@@ -141,6 +141,19 @@ export default function HomePage() {
               country={country}
             />
         </div>
+        
+        {activeSnapPoint === 0.1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
+                <Button 
+                    onClick={() => setActiveSnapPoint(0.5)}
+                    className="rounded-full shadow-lg"
+                    aria-label="Open route planner"
+                >
+                    <PanelTopOpen className="mr-2 h-5 w-5" />
+                    Plan Route
+                </Button>
+            </div>
+        )}
 
         <Drawer 
           open={true}
