@@ -141,13 +141,13 @@ export default function HomePage() {
             />
         </div>
 
-        <Drawer>
+        <Drawer snapPoints={[0.5, 1]} activeSnapPoint={0.5}>
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
               <DrawerHeader className="text-left">
                   <DrawerTitle>Plan Your Route</DrawerTitle>
                   <DrawerDescription>Add addresses and optimize your journey.</DrawerDescription>
               </DrawerHeader>
-              <div className="flex-grow overflow-y-auto p-4">
+              <div className="flex-grow overflow-y-auto p-4 min-h-[100px]">
                   <div className="space-y-6 max-w-2xl mx-auto">
                       <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} />
                       <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
