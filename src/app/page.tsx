@@ -137,11 +137,12 @@ export default function HomePage() {
         
         <Drawer
           open={true}
-          snapPoints={[0.1, 0.5, 1]}
+          snapPoints={[0.12, 0.5, 1]}
           activeSnapPoint={activeSnapPoint}
           onActiveSnapPointChange={setActiveSnapPoint}
         >
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
+            <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
               <DrawerHeader className="text-left">
                   <DrawerTitle>Plan Your Route</DrawerTitle>
                   <DrawerDescription>Add addresses and optimize your journey.</DrawerDescription>
