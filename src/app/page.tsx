@@ -8,7 +8,7 @@ import { RouteMap } from '@/components/route-map';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapPinned, AlertCircle, CheckCircle, PanelTopOpen } from 'lucide-react';
+import { MapPinned, AlertCircle, CheckCircle } from 'lucide-react';
 import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
@@ -23,7 +23,6 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
   const [country, setCountry] = useState<string | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [activeSnapPoint, setActiveSnapPoint] = useState<number | string | null>(0.5);
 
   const { toast } = useToast();
@@ -120,18 +119,6 @@ export default function HomePage() {
       setIsOptimizing(false);
     }
   };
-  
-  const handleSnapChange = (snapPoint: number | string | null) => {
-    setActiveSnapPoint(snapPoint);
-    if (snapPoint === 0.1) {
-        setIsDrawerOpen(false);
-    }
-  }
-
-  const openDrawer = () => {
-    setIsDrawerOpen(true);
-    setActiveSnapPoint(0.5);
-  };
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
@@ -144,17 +131,15 @@ export default function HomePage() {
               apiKey={googleMapsApiKey} 
               userLocation={userLocation}
               mapCenter={mapCenter}
-              country={country}
               onCountryChange={setCountry}
             />
         </div>
         
         <Drawer
-          open={isDrawerOpen}
-          onOpenChange={setIsDrawerOpen}
+          open={true}
           snapPoints={[0.1, 0.5, 1]}
           activeSnapPoint={activeSnapPoint}
-          onActiveSnapPointChange={handleSnapChange}
+          onActiveSnapPointChange={setActiveSnapPoint}
         >
           <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
               <DrawerHeader className="text-left">
@@ -205,19 +190,6 @@ export default function HomePage() {
               </div>
             </DrawerContent>
         </Drawer>
-        
-        {!isDrawerOpen && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
-                <Button 
-                    onClick={openDrawer}
-                    className="rounded-full shadow-lg"
-                    aria-label="Open route planner"
-                >
-                    <PanelTopOpen className="mr-2 h-5 w-5" />
-                    Plan Route
-                </Button>
-            </div>
-        )}
       </main>
     </div>
   );

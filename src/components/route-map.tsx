@@ -14,7 +14,6 @@ interface RouteMapProps {
   apiKey: string | undefined;
   userLocation?: { lat: number; lng: number } | null;
   mapCenter?: { lat: number; lng: number } | null;
-  country?: string | null;
   onCountryChange: (country: string | null) => void;
 }
 
