@@ -54,10 +54,10 @@ export default function HomePage() {
   }, [toast]);
   
   const handleActiveSnapPointChange = (snapPoint: number | string | null) => {
+    setActiveSnapPoint(snapPoint);
     if (snapPoint === 0.15) {
       setIsOpen(false);
     }
-    setActiveSnapPoint(snapPoint);
   };
   
   const handleOpenDrawer = () => {
