@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AddressInputForm } from '@/components/address-input-form';
+import { ManualAddressForm, ActionButtons } from '@/components/address-input-form';
 import { AddressList } from '@/components/address-list';
 import { RouteMap } from '@/components/route-map';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,7 @@ export default function HomePage() {
           setUserLocation(location);
           setMapCenter(location);
           
-          if (window.google && window.google.maps.Circle) {
+          if (window.google && window.google.maps && window.google.maps.Circle) {
             const circle = new google.maps.Circle({
               center: location,
               radius: 50 * 1000, // 50km
@@ -182,7 +182,11 @@ export default function HomePage() {
                 </DrawerHeader>
                 <div className="flex-grow overflow-y-auto p-4 min-h-[100px]">
                     <div className="space-y-6 max-w-2xl mx-auto">
-                        <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} bounds={locationBounds} />
+                        <div className="space-y-4">
+                            <ManualAddressForm onAddressAdd={handleAddressAdd} bounds={locationBounds} />
+                            <ActionButtons onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} />
+                        </div>
+
                         <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
                         
                         <div className="flex gap-2">
