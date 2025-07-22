@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,7 +13,6 @@ import { recognizeAddressAction } from '@/lib/actions';
 interface AddressInputFormProps {
   onAddressAdd: (address: string) => void;
   onRecenter: (coords: { lat: number; lng: number }) => void;
-  country: string | null;
 }
 
 const fileToDataUri = (file: File): Promise<string> => {
@@ -25,48 +24,12 @@ const fileToDataUri = (file: File): Promise<string> => {
   });
 };
 
-export function AddressInputForm({ onAddressAdd, onRecenter, country }: AddressInputFormProps) {
+export function AddressInputForm({ onAddressAdd, onRecenter }: AddressInputFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteInstance = useRef<google.maps.places.Autocomplete | null>(null);
-  const [isAutocompleteReady, setIsAutocompleteReady] = useState(false);
-
-  useEffect(() => {
-    // Wait until the google object and the country are available
-    if (autocompleteInputRef.current && (window as any).google?.maps?.places && country) {
-      const options = {
-        types: ["address"],
-        componentRestrictions: { country },
-      };
-      
-      // Clear any previous instance
-      if (autocompleteInstance.current) {
-        (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
-      }
-      
-      autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInputRef.current, options);
-      
-      autocompleteInstance.current.addListener('place_changed', () => {
-        const place = autocompleteInstance.current?.getPlace();
-        if (place?.formatted_address) {
-          setManualAddress(place.formatted_address);
-        }
-      });
-      setIsAutocompleteReady(true);
-    }
-    
-    // Cleanup function to remove listeners
-    return () => {
-      if (autocompleteInstance.current) {
-        (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
-      }
-    };
-  }, [country]);
-
 
   const handleManualAdd = () => {
     if (manualAddress.trim()) {
@@ -168,16 +131,14 @@ export function AddressInputForm({ onAddressAdd, onRecenter, country }: AddressI
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
-            ref={autocompleteInputRef}
             type="text"
-            placeholder={isAutocompleteReady ? "Enter an address" : "Detecting location..."}
+            placeholder="Enter an address"
             value={manualAddress}
             onChange={(e) => setManualAddress(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleManualAdd()}
             aria-label="Enter an address manually"
-            disabled={!isAutocompleteReady}
           />
-          <Button onClick={handleManualAdd} aria-label="Add manual address" disabled={!isAutocompleteReady}>
+          <Button onClick={handleManualAdd} aria-label="Add manual address">
             <PlusCircle className="mr-2 h-5 w-5" /> Add
           </Button>
         </div>

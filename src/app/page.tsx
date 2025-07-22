@@ -23,7 +23,6 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
-  const [country, setCountry] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(true);
   const [activeSnapPoint, setActiveSnapPoint] = useState<number | string | null>(0.5);
   
@@ -154,7 +153,6 @@ export default function HomePage() {
                 optimizedRoute={optimizedRoute}
                 userLocation={userLocation}
                 mapCenter={mapCenter}
-                onCountryChange={setCountry}
               />
           </div>
           
@@ -173,7 +171,7 @@ export default function HomePage() {
                 </DrawerHeader>
                 <div className="flex-grow overflow-y-auto p-4 min-h-[100px]">
                     <div className="space-y-6 max-w-2xl mx-auto">
-                        <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} country={country} />
+                        <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} />
                         <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
                         
                         <div className="flex gap-2">
@@ -232,5 +230,3 @@ export default function HomePage() {
     </APIProvider>
   );
 }
-
-    
