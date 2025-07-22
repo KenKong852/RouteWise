@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { recognizeAddressAction } from '@/lib/actions';
 interface AddressInputFormProps {
   onAddressAdd: (address: string) => void;
   onRecenter: (coords: { lat: number; lng: number }) => void;
+  bounds: google.maps.LatLngBounds | null;
 }
 
 const fileToDataUri = (file: File): Promise<string> => {
@@ -24,12 +25,43 @@ const fileToDataUri = (file: File): Promise<string> => {
   });
 };
 
-export function AddressInputForm({ onAddressAdd, onRecenter }: AddressInputFormProps) {
+export function AddressInputForm({ onAddressAdd, onRecenter, bounds }: AddressInputFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteInstance = useRef<google.maps.places.Autocomplete | null>(null);
+
+  useEffect(() => {
+    if (autocompleteInputRef.current && window.google && window.google.maps && window.google.maps.places) {
+      const options = {
+        fields: ["formatted_address"],
+        types: ["address"],
+        strictBounds: false,
+      };
+
+      if (bounds) {
+        (options as any).bounds = bounds;
+      }
+
+      autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInputRef.current, options);
+
+      autocompleteInstance.current.addListener('place_changed', () => {
+        const place = autocompleteInstance.current?.getPlace();
+        if (place && place.formatted_address) {
+          setManualAddress(place.formatted_address);
+        }
+      });
+    }
+
+    return () => {
+      if (autocompleteInstance.current) {
+        (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
+      }
+    };
+  }, [bounds]);
 
   const handleManualAdd = () => {
     if (manualAddress.trim()) {
@@ -131,6 +163,7 @@ export function AddressInputForm({ onAddressAdd, onRecenter }: AddressInputFormP
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
+            ref={autocompleteInputRef}
             type="text"
             placeholder="Enter an address"
             value={manualAddress}
