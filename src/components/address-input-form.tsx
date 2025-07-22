@@ -32,7 +32,6 @@ export function AddressInputForm({ onAddressAdd, onRecenter, country }: AddressI
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { ref: autocompleteRef } = usePlacesWidget({
-    apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     onPlaceSelected: (place) => {
       setManualAddress(place.formatted_address || '');
     },
@@ -43,9 +42,11 @@ export function AddressInputForm({ onAddressAdd, onRecenter, country }: AddressI
   });
 
   useEffect(() => {
-    if (autocompleteRef.current && country) {
-      const autocomplete = new (window as any).google.maps.places.Autocomplete(autocompleteRef.current);
-      autocomplete.setComponentRestrictions({ country });
+    if (autocompleteRef.current && (window as any).google?.maps?.places) {
+        const autocomplete = new (window as any).google.maps.places.Autocomplete(autocompleteRef.current);
+        if (country) {
+            autocomplete.setComponentRestrictions({ country });
+        }
     }
   }, [country, autocompleteRef]);
 

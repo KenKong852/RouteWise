@@ -144,7 +144,7 @@ export default function HomePage() {
   }
 
   return (
-    <APIProvider apiKey={googleMapsApiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps">
+    <APIProvider apiKey={googleMapsApiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps" libraries={['places']}>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <main className="flex-grow relative">
           <div className="absolute inset-0 h-full w-full">
