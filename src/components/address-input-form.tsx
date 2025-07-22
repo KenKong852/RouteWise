@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,10 +8,12 @@ import { PlusCircle, Camera, LocateFixed } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { recognizeAddressAction } from '@/lib/actions';
+import { usePlacesWidget } from "react-google-autocomplete";
 
 interface AddressInputFormProps {
   onAddressAdd: (address: string) => void;
   onRecenter: (coords: { lat: number; lng: number }) => void;
+  country: string | null;
 }
 
 const fileToDataUri = (file: File): Promise<string> => {
@@ -23,12 +25,29 @@ const fileToDataUri = (file: File): Promise<string> => {
   });
 };
 
-export function AddressInputForm({ onAddressAdd, onRecenter }: AddressInputFormProps) {
+export function AddressInputForm({ onAddressAdd, onRecenter, country }: AddressInputFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { ref: autocompleteRef } = usePlacesWidget({
+    apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    onPlaceSelected: (place) => {
+      setManualAddress(place.formatted_address || '');
+    },
+    options: {
+      types: ["address"],
+      componentRestrictions: country ? { country } : undefined,
+    },
+  });
+
+  useEffect(() => {
+    if (autocompleteRef.current && country) {
+      const autocomplete = new (window as any).google.maps.places.Autocomplete(autocompleteRef.current);
+      autocomplete.setComponentRestrictions({ country });
+    }
+  }, [country, autocompleteRef]);
 
   const handleManualAdd = () => {
     if (manualAddress.trim()) {
@@ -130,6 +149,7 @@ export function AddressInputForm({ onAddressAdd, onRecenter }: AddressInputFormP
       <CardContent className="space-y-4">
         <div className="flex gap-2">
           <Input
+            ref={autocompleteRef}
             type="text"
             placeholder="Enter an address"
             value={manualAddress}

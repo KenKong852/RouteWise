@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/layout/header';
 import { AddressInputForm } from '@/components/address-input-form';
 import { AddressList } from '@/components/address-list';
 import { RouteMap } from '@/components/route-map';
@@ -13,6 +12,7 @@ import { optimizeRouteAction } from '@/lib/actions';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
+import { APIProvider } from '@vis.gl/react-google-maps';
 
 export default function HomePage() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -132,92 +132,102 @@ export default function HomePage() {
       setIsOptimizing(false);
     }
   };
+  
+  if (!googleMapsApiKey) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-muted">
+        <p className="text-destructive-foreground bg-destructive p-4 rounded-md shadow-lg">
+            Google Maps API Key is not configured. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header />
-      <main className="flex-grow relative">
-        <div className="absolute inset-0 h-full w-full">
-            <RouteMap 
-              addresses={addresses} 
-              optimizedRoute={optimizedRoute}
-              apiKey={googleMapsApiKey} 
-              userLocation={userLocation}
-              mapCenter={mapCenter}
-              onCountryChange={setCountry}
-            />
-        </div>
-        
-        <Drawer
-          open={isOpen}
-          onOpenChange={setIsOpen}
-          snapPoints={[0.15, 0.5, 1]}
-          activeSnapPoint={activeSnapPoint}
-          onActiveSnapPointChange={handleActiveSnapPointChange}
-        >
-          <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
-            <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
-              <DrawerHeader className="text-left">
-                  <DrawerTitle>Plan Your Route</DrawerTitle>
-                  <DrawerDescription>Add addresses and optimize your journey.</DrawerDescription>
-              </DrawerHeader>
-              <div className="flex-grow overflow-y-auto p-4 min-h-[100px]">
-                  <div className="space-y-6 max-w-2xl mx-auto">
-                      <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} />
-                      <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
-                      
-                      <div className="flex gap-2">
-                      <Button 
-                          onClick={handleOptimizeRoute} 
-                           disabled={isOptimizing || addresses.length < 2}
-                          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
-                          aria-label="Optimize current route"
-                      >
-                          {isOptimizing ? (
-                          <Spinner className="mr-2 h-5 w-5" />
-                          ) : (
-                          <MapPinned className="mr-2 h-5 w-5" />
-                          )}
-                          {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
-                      </Button>
-                      </div>
-
-                      {error && (
-                      <Alert variant="destructive" className="shadow-md">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertTitle>Error</AlertTitle>
-                          <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                      )}
-
-                      {optimizedRouteReasoning && (
-                      <Card className="shadow-lg">
-                          <CardHeader>
-                          <CardTitle className="font-headline text-lg">AI Optimization Insights</CardTitle>
-                          <CardDescription>How your route was optimized:</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                          <p className="text-sm text-muted-foreground">{optimizedRouteReasoning}</p>
-                          </CardContent>
-                      </Card>
-                      )}
-                  </div>
-              </div>
-            </DrawerContent>
-        </Drawer>
-         {!isOpen && (
-          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30">
-            <Button
-              onClick={handleOpenDrawer}
-              className="py-3 text-lg shadow-lg"
-              aria-label="Open route planner"
-            >
-              <PanelTopOpen className="mr-2 h-5 w-5" />
-              Plan Route
-            </Button>
+    <APIProvider apiKey={googleMapsApiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps">
+      <div className="flex flex-col h-screen bg-background text-foreground">
+        <main className="flex-grow relative">
+          <div className="absolute inset-0 h-full w-full">
+              <RouteMap 
+                addresses={addresses} 
+                optimizedRoute={optimizedRoute}
+                userLocation={userLocation}
+                mapCenter={mapCenter}
+                onCountryChange={setCountry}
+              />
           </div>
-        )}
-      </main>
-    </div>
+          
+          <Drawer
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            snapPoints={[0.15, 0.5, 1]}
+            activeSnapPoint={activeSnapPoint}
+            onActiveSnapPointChange={handleActiveSnapPointChange}
+          >
+            <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
+              <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+                <DrawerHeader className="text-left">
+                    <DrawerTitle>Plan Your Route</DrawerTitle>
+                    <DrawerDescription>Add addresses and optimize your journey.</DrawerDescription>
+                </DrawerHeader>
+                <div className="flex-grow overflow-y-auto p-4 min-h-[100px]">
+                    <div className="space-y-6 max-w-2xl mx-auto">
+                        <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} country={country} />
+                        <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
+                        
+                        <div className="flex gap-2">
+                        <Button 
+                            onClick={handleOptimizeRoute} 
+                            disabled={isOptimizing || addresses.length < 2}
+                            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-3 text-lg shadow-md"
+                            aria-label="Optimize current route"
+                        >
+                            {isOptimizing ? (
+                            <Spinner className="mr-2 h-5 w-5" />
+                            ) : (
+                            <MapPinned className="mr-2 h-5 w-5" />
+                            )}
+                            {isOptimizing ? 'Optimizing...' : 'Optimize Route'}
+                        </Button>
+                        </div>
+
+                        {error && (
+                        <Alert variant="destructive" className="shadow-md">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                        )}
+
+                        {optimizedRouteReasoning && (
+                        <Card className="shadow-lg">
+                        
+                            <CardTitle className="font-headline text-lg">AI Optimization Insights</CardTitle>
+                            <CardDescription>How your route was optimized:</CardDescription>
+                            
+                            <CardContent>
+                            <p className="text-sm text-muted-foreground">{optimizedRouteReasoning}</p>
+                            </CardContent>
+                        </Card>
+                        )}
+                    </div>
+                </div>
+              </DrawerContent>
+          </Drawer>
+          {!isOpen && (
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30">
+              <Button
+                onClick={handleOpenDrawer}
+                className="py-3 text-lg shadow-lg"
+                aria-label="Open route planner"
+              >
+                <PanelTopOpen className="mr-2 h-5 w-5" />
+                Plan Route
+              </Button>
+            </div>
+          )}
+        </main>
+      </div>
+    </APIProvider>
   );
 }

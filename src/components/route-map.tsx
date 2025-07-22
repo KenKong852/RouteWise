@@ -2,16 +2,14 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { APIProvider, Map, AdvancedMarker, useMap, InfoWindow } from '@vis.gl/react-google-maps';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Route as RouteIcon } from 'lucide-react';
+import { Map, AdvancedMarker, useMap, InfoWindow } from '@vis.gl/react-google-maps';
+import { MapPin } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { getCountryFromCoordinates } from '@/lib/utils';
 
 interface RouteMapProps {
   addresses: string[]; // Could be unsorted or optimized
   optimizedRoute?: string[]; // The AI optimized route strings
-  apiKey: string | undefined;
   userLocation?: { lat: number; lng: number } | null;
   mapCenter?: { lat: number; lng: number } | null;
   onCountryChange: (country: string | null) => void;
@@ -207,32 +205,19 @@ function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter, us
 }
 
 
-export function RouteMap({ addresses, optimizedRoute, apiKey, userLocation, mapCenter, onCountryChange }: RouteMapProps) {
-  
-  if (!apiKey) {
-    return (
-      <div className="h-full flex items-center justify-center bg-muted">
-        <p className="text-destructive-foreground bg-destructive p-4 rounded-md shadow-lg">
-            Google Maps API Key is not configured. Please set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.
-        </p>
-      </div>
-    );
-  }
-  
+export function RouteMap({ addresses, optimizedRoute, userLocation, mapCenter, onCountryChange }: RouteMapProps) {
   return (
     <div className="h-full w-full">
-        <APIProvider apiKey={apiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps">
-            <Map
-                defaultCenter={mapCenter ?? FALLBACK_CENTER}
-                defaultZoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
-                gestureHandling={'greedy'}
-                disableDefaultUI={true}
-                mapId="routeWiseMap"
-                className="h-full w-full"
-              >
-                <MapView addresses={addresses} optimizedRoute={optimizedRoute} mapCenter={mapCenter} userLocation={userLocation} onCountryChange={onCountryChange} />
-            </Map>
-        </APIProvider>
+        <Map
+            defaultCenter={mapCenter ?? FALLBACK_CENTER}
+            defaultZoom={userLocation ? USER_LOCATION_ZOOM : DEFAULT_ZOOM}
+            gestureHandling={'greedy'}
+            disableDefaultUI={true}
+            mapId="routeWiseMap"
+            className="h-full w-full"
+            >
+            <MapView addresses={addresses} optimizedRoute={optimizedRoute} mapCenter={mapCenter} userLocation={userLocation} onCountryChange={onCountryChange} />
+        </Map>
     </div>
   );
 }
