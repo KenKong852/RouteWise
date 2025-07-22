@@ -42,7 +42,7 @@ export default function HomePage() {
           setUserLocation(location);
           setMapCenter(location);
           
-          if (window.google) {
+          if (window.google && window.google.maps.Circle) {
             const circle = new google.maps.Circle({
               center: location,
               radius: 50 * 1000, // 50km
@@ -155,7 +155,7 @@ export default function HomePage() {
   }
 
   return (
-    <APIProvider apiKey={googleMapsApiKey} libraries={['places', 'geocoding']}>
+    <APIProvider apiKey={googleMapsApiKey} libraries={['places', 'geocoding', 'geometry']}>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <main className="flex-grow relative">
           <div className="absolute inset-0 h-full w-full">
