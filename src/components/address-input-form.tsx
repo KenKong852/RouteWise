@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -32,24 +33,33 @@ export function AddressInputForm({ onAddressAdd, onRecenter, country }: AddressI
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autocompleteInputRef = useRef<HTMLInputElement>(null);
   const autocompleteInstance = useRef<google.maps.places.Autocomplete | null>(null);
+  const [isAutocompleteReady, setIsAutocompleteReady] = useState(false);
 
   useEffect(() => {
-    if (autocompleteInputRef.current && (window as any).google?.maps?.places) {
+    // Wait until the google object and the country are available
+    if (autocompleteInputRef.current && (window as any).google?.maps?.places && country) {
       const options = {
         types: ["address"],
-        componentRestrictions: country ? { country } : undefined,
+        componentRestrictions: { country },
       };
-
+      
+      // Clear any previous instance
+      if (autocompleteInstance.current) {
+        (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
+      }
+      
       autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInputRef.current, options);
-
+      
       autocompleteInstance.current.addListener('place_changed', () => {
         const place = autocompleteInstance.current?.getPlace();
         if (place?.formatted_address) {
           setManualAddress(place.formatted_address);
         }
       });
+      setIsAutocompleteReady(true);
     }
-
+    
+    // Cleanup function to remove listeners
     return () => {
       if (autocompleteInstance.current) {
         (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
@@ -160,13 +170,14 @@ export function AddressInputForm({ onAddressAdd, onRecenter, country }: AddressI
           <Input
             ref={autocompleteInputRef}
             type="text"
-            placeholder="Enter an address"
+            placeholder={isAutocompleteReady ? "Enter an address" : "Detecting location..."}
             value={manualAddress}
             onChange={(e) => setManualAddress(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleManualAdd()}
             aria-label="Enter an address manually"
+            disabled={!isAutocompleteReady}
           />
-          <Button onClick={handleManualAdd} aria-label="Add manual address">
+          <Button onClick={handleManualAdd} aria-label="Add manual address" disabled={!isAutocompleteReady}>
             <PlusCircle className="mr-2 h-5 w-5" /> Add
           </Button>
         </div>
