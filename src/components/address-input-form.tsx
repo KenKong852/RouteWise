@@ -40,15 +40,21 @@ export function ManualAddressForm({ onAddressAdd, userLocation }: ManualAddressF
         options.bounds = circle.getBounds()!;
       }
 
-      autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInputRef.current, options);
+      if (autocompleteInstance.current) {
+        // If autocomplete already exists, just update the bounds
+        autocompleteInstance.current.setOptions(options);
+      } else {
+        // Otherwise, create a new instance
+        autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInputRef.current, options);
 
-      autocompleteInstance.current.addListener('place_changed', () => {
-        const place = autocompleteInstance.current?.getPlace();
-        if (place && place.formatted_address) {
-          onAddressAdd(place.formatted_address);
-          setManualAddress('');
-        }
-      });
+        autocompleteInstance.current.addListener('place_changed', () => {
+          const place = autocompleteInstance.current?.getPlace();
+          if (place && place.formatted_address) {
+            onAddressAdd(place.formatted_address);
+            setManualAddress('');
+          }
+        });
+      }
     }
 
     return () => {
@@ -57,8 +63,7 @@ export function ManualAddressForm({ onAddressAdd, userLocation }: ManualAddressF
         (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLocation]);
+  }, [userLocation, onAddressAdd]);
 
   const handleManualAdd = () => {
     if (manualAddress.trim()) {
