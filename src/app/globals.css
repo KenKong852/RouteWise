@@ -6,6 +6,11 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Fix for Google Maps Autocomplete suggestions appearing behind other UI elements */
+.pac-container {
+  z-index: 9999 !important;
+}
+
 @layer base {
   :root {
     --background: 60 67% 91%; /* Soft Beige #F5F5DC */
