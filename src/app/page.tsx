@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -144,7 +145,7 @@ export default function HomePage() {
   }
 
   return (
-    <APIProvider apiKey={googleMapsApiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps" libraries={['places', 'geocoding']}>
+    <APIProvider apiKey={googleMapsApiKey} libraries={['places', 'geocoding']}>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <main className="flex-grow relative">
           <div className="absolute inset-0 h-full w-full">
@@ -231,3 +232,5 @@ export default function HomePage() {
     </APIProvider>
   );
 }
+
+    
