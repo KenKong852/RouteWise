@@ -41,7 +41,7 @@ export default function HomePage() {
           setUserLocation(location);
           setMapCenter(location);
         },
-        error => {
+        (error) => {
           console.error("Geolocation error:", error);
           toast({
             title: "Location Access Denied",
@@ -144,7 +144,7 @@ export default function HomePage() {
   }
 
   return (
-    <APIProvider apiKey={googleMapsApiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps" libraries={['places']}>
+    <APIProvider apiKey={googleMapsApiKey} solutionChannel="GMP_devsite_samples_v3_rgmaps" libraries={['places', 'geocoding']}>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <main className="flex-grow relative">
           <div className="absolute inset-0 h-full w-full">
@@ -201,10 +201,10 @@ export default function HomePage() {
 
                         {optimizedRouteReasoning && (
                         <Card className="shadow-lg">
-                        
+                         <CardHeader>
                             <CardTitle className="font-headline text-lg">AI Optimization Insights</CardTitle>
                             <CardDescription>How your route was optimized:</CardDescription>
-                            
+                          </CardHeader>
                             <CardContent>
                             <p className="text-sm text-muted-foreground">{optimizedRouteReasoning}</p>
                             </CardContent>

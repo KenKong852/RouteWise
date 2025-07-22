@@ -159,7 +159,7 @@ function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter, us
       const newPolyline = new google.maps.Polyline({
         path: route.overview_path,
         geodesic: true,
-        strokeColor: 'hsl(140, 27%, 34%)',
+        strokeColor: 'hsl(var(--primary))',
         strokeOpacity: 0.8,
         strokeWeight: 6,
       });
