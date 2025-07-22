@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -41,7 +40,7 @@ export function AddressInputForm({ onAddressAdd, onRecenter, country }: AddressI
         componentRestrictions: country ? { country } : undefined,
       };
 
-      autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInput.current, options);
+      autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInputRef.current, options);
 
       autocompleteInstance.current.addListener('place_changed', () => {
         const place = autocompleteInstance.current?.getPlace();
