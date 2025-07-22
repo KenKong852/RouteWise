@@ -90,9 +90,7 @@ export default function HomePage() {
   };
 
   const handleAddressRemove = (indexToRemove: number) => {
-    const currentSnap = activeSnapPoint;
     setAddresses((prev) => prev.filter((_, index) => index !== indexToRemove));
-    setActiveSnapPoint(currentSnap);
     setOptimizedRoute([]);
     setOptimizedRouteReasoning(null);
     setError(null);
