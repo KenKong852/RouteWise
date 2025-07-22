@@ -23,7 +23,6 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
-  const [locationBounds, setLocationBounds] = useState<google.maps.LatLngBounds | null>(null);
   const [isOpen, setIsOpen] = useState(true);
   const [activeSnapPoint, setActiveSnapPoint] = useState<number | string | null>(0.5);
   
@@ -41,14 +40,6 @@ export default function HomePage() {
           };
           setUserLocation(location);
           setMapCenter(location);
-          
-          if (window.google && window.google.maps && window.google.maps.Circle) {
-            const circle = new google.maps.Circle({
-              center: location,
-              radius: 50 * 1000, // 50km
-            });
-            setLocationBounds(circle.getBounds());
-          }
         },
         (error) => {
           console.error("Geolocation error:", error);
@@ -90,6 +81,7 @@ export default function HomePage() {
   };
 
   const handleAddressRemove = (indexToRemove: number) => {
+    setActiveSnapPoint(prev => prev);
     setAddresses((prev) => prev.filter((_, index) => index !== indexToRemove));
     setOptimizedRoute([]);
     setOptimizedRouteReasoning(null);
@@ -181,7 +173,7 @@ export default function HomePage() {
                 <div className="flex-grow overflow-y-auto p-4 min-h-[100px]">
                     <div className="space-y-6 max-w-2xl mx-auto">
                         <div className="space-y-4">
-                            <ManualAddressForm onAddressAdd={handleAddressAdd} bounds={locationBounds} />
+                            <ManualAddressForm onAddressAdd={handleAddressAdd} userLocation={userLocation} />
                             <ActionButtons onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} />
                         </div>
 

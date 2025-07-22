@@ -12,23 +12,33 @@ import { recognizeAddressAction } from '@/lib/actions';
 
 interface ManualAddressFormProps {
   onAddressAdd: (address: string) => void;
-  bounds: google.maps.LatLngBounds | null;
+  userLocation: { lat: number; lng: number } | null;
 }
 
-export function ManualAddressForm({ onAddressAdd, bounds }: ManualAddressFormProps) {
+export function ManualAddressForm({ onAddressAdd, userLocation }: ManualAddressFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const { toast } = useToast();
   const autocompleteInputRef = useRef<HTMLInputElement>(null);
   const autocompleteInstance = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
-    if (autocompleteInputRef.current && window.google && window.google.maps && window.google.maps.places && bounds) {
-      const options = {
+    if (autocompleteInputRef.current && window.google && window.google.maps && window.google.maps.places) {
+      const options: {
+        fields: string[];
+        types: string[];
+        bounds?: google.maps.LatLngBounds;
+      } = {
         fields: ["formatted_address"],
         types: ["address"],
-        bounds: bounds,
-        strictBounds: false,
       };
+
+      if (userLocation) {
+        const circle = new google.maps.Circle({
+            center: userLocation,
+            radius: 50 * 1000, // 50km
+        });
+        options.bounds = circle.getBounds()!;
+      }
 
       autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInputRef.current, options);
 
@@ -48,7 +58,7 @@ export function ManualAddressForm({ onAddressAdd, bounds }: ManualAddressFormPro
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bounds]);
+  }, [userLocation]);
 
   const handleManualAdd = () => {
     if (manualAddress.trim()) {
@@ -78,13 +88,11 @@ export function ManualAddressForm({ onAddressAdd, bounds }: ManualAddressFormPro
             onChange={(e) => setManualAddress(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleManualAdd()}
             aria-label="Enter an address manually"
-            disabled={!bounds}
           />
-          <Button onClick={handleManualAdd} aria-label="Add manual address" disabled={!bounds}>
+          <Button onClick={handleManualAdd} aria-label="Add manual address">
             <PlusCircle className="mr-2 h-5 w-5" /> Add
           </Button>
         </div>
-        {!bounds && <p className="text-xs text-muted-foreground mt-2">Waiting for location to enable address search...</p>}
       </CardContent>
     </Card>
   );
