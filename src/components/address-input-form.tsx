@@ -35,16 +35,19 @@ export function ManualAddressForm({ onAddressAdd, bounds }: ManualAddressFormPro
       autocompleteInstance.current.addListener('place_changed', () => {
         const place = autocompleteInstance.current?.getPlace();
         if (place && place.formatted_address) {
-          setManualAddress(place.formatted_address);
+          onAddressAdd(place.formatted_address);
+          setManualAddress('');
         }
       });
     }
 
     return () => {
       if (autocompleteInstance.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bounds]);
 
   const handleManualAdd = () => {
