@@ -12,57 +12,60 @@ import { recognizeAddressAction } from '@/lib/actions';
 
 interface ManualAddressFormProps {
   onAddressAdd: (address: string) => void;
-  userLocation: { lat: number; lng: number } | null;
+  map: google.maps.Map | null;
 }
 
-export function ManualAddressForm({ onAddressAdd, userLocation }: ManualAddressFormProps) {
+export function ManualAddressForm({ onAddressAdd, map }: ManualAddressFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const { toast } = useToast();
-  const autocompleteInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteInstance = useRef<google.maps.places.Autocomplete | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null);
 
   useEffect(() => {
-    // Ensure the Google Maps script is loaded and the input ref is available.
-    if (!autocompleteInputRef.current || !window.google || !window.google.maps || !window.google.maps.places) {
+    if (!map || !inputRef.current || !window.google || !window.google.maps || !window.google.maps.places) {
       return;
     }
 
-    // Initialize the Autocomplete instance once.
-    if (!autocompleteInstance.current) {
-      autocompleteInstance.current = new google.maps.places.Autocomplete(autocompleteInputRef.current, {
-        fields: ["formatted_address"],
-        types: ["address"],
-      });
+    if (!searchBoxRef.current) {
+        const searchBox = new google.maps.places.SearchBox(inputRef.current);
+        searchBoxRef.current = searchBox;
 
-      // Add the place_changed listener.
-      autocompleteInstance.current.addListener('place_changed', () => {
-        const place = autocompleteInstance.current?.getPlace();
-        if (place && place.formatted_address) {
-          onAddressAdd(place.formatted_address);
-          setManualAddress(''); // Clear the input field after selection.
-        }
-      });
-    }
-
-    // Update the bounds whenever the userLocation changes.
-    const options: { bounds?: google.maps.LatLngBounds } = {};
-    if (userLocation) {
-        const circle = new google.maps.Circle({
-            center: userLocation,
-            radius: 50 * 1000, // 50km
+        map.addListener("bounds_changed", () => {
+            searchBox.setBounds(map.getBounds() as google.maps.LatLngBounds);
         });
-        options.bounds = circle.getBounds()!;
+
+        searchBox.addListener('places_changed', () => {
+            const places = searchBox.getPlaces();
+
+            if (!places || places.length === 0) {
+              return;
+            }
+
+            const place = places[0];
+            
+            if (place && place.formatted_address) {
+                onAddressAdd(place.formatted_address);
+                setManualAddress(''); // Clear input after selection
+            }
+        });
     }
-    autocompleteInstance.current.setOptions(options);
+
+    // Bias search results to map viewport
+    if(map.getBounds()) {
+        searchBoxRef.current.setBounds(map.getBounds() as google.maps.LatLngBounds);
+    }
     
-    // Cleanup function to remove listeners when the component unmounts.
+    // Cleanup
     return () => {
-        if (autocompleteInstance.current) {
-            // The `clearInstanceListeners` is a static method on google.maps.event.
-            (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
+        if (searchBoxRef.current) {
+            // Static method to clear all listeners on the object
+            (window as any).google.maps.event.clearInstanceListeners(searchBoxRef.current);
         }
+        // Also clear the bounds_changed listener from the map
+        (window as any).google.maps.event.clearInstanceListeners(map);
     };
-  }, [userLocation, onAddressAdd]);
+
+  }, [map, onAddressAdd]);
 
 
   const handleManualAdd = () => {
@@ -86,7 +89,7 @@ export function ManualAddressForm({ onAddressAdd, userLocation }: ManualAddressF
       <CardContent>
         <div className="flex gap-2">
           <Input
-            ref={autocompleteInputRef}
+            ref={inputRef}
             type="text"
             placeholder="Enter an address"
             value={manualAddress}

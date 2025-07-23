@@ -25,6 +25,7 @@ export default function HomePage() {
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
   const [isOpen, setIsOpen] = useState(true);
   const [activeSnapPoint, setActiveSnapPoint] = useState<number | string | null>(0.5);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
   
   const { toast } = useToast();
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -154,6 +155,7 @@ export default function HomePage() {
                 optimizedRoute={optimizedRoute}
                 userLocation={userLocation}
                 mapCenter={mapCenter}
+                onMapLoad={setMap}
               />
           </div>
           
@@ -173,7 +175,7 @@ export default function HomePage() {
                 <div className="flex-grow overflow-y-auto p-4 min-h-[100px]">
                     <div className="space-y-6 max-w-2xl mx-auto">
                         <div className="space-y-4">
-                            <ManualAddressForm onAddressAdd={handleAddressAdd} userLocation={userLocation} />
+                            <ManualAddressForm onAddressAdd={handleAddressAdd} map={map} />
                             <ActionButtons onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} />
                         </div>
 

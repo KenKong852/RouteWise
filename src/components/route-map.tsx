@@ -11,6 +11,7 @@ interface RouteMapProps {
   optimizedRoute?: string[]; // The AI optimized route strings
   userLocation?: { lat: number; lng: number } | null;
   mapCenter?: { lat: number; lng: number } | null;
+  onMapLoad?: (map: google.maps.Map) => void;
 }
 
 interface GeocodedAddress {
@@ -22,7 +23,7 @@ const FALLBACK_CENTER = { lat: 37.0902, lng: -95.7129 }; // Center of USA
 const DEFAULT_ZOOM = 4;
 const USER_LOCATION_ZOOM = 15;
 
-function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter }: { addresses: string[], optimizedRoute?: string[], mapCenter?: { lat: number; lng: number } | null; userLocation?: { lat: number; lng: number } | null; }) {
+function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter, onMapLoad }: { addresses: string[], optimizedRoute?: string[], mapCenter?: { lat: number; lng: number } | null; userLocation?: { lat: number; lng: number } | null; onMapLoad?: (map: google.maps.Map) => void; }) {
   const map = useMap();
   const [geocodedAddresses, setGeocodedAddresses] = useState<GeocodedAddress[]>([]);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
@@ -32,6 +33,12 @@ function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter }: 
   const polylineRef = useRef<google.maps.Polyline | null>(null);
 
   const displayedAddresses = optimizedRoute && optimizedRoute.length > 0 ? optimizedRoute : addresses;
+
+  useEffect(() => {
+    if (map && onMapLoad) {
+      onMapLoad(map);
+    }
+  }, [map, onMapLoad]);
 
   useEffect(() => {
     if (map && controlledMapCenter) {
@@ -194,7 +201,7 @@ function MapView({ addresses, optimizedRoute, mapCenter: controlledMapCenter }: 
 }
 
 
-export function RouteMap({ addresses, optimizedRoute, userLocation, mapCenter }: RouteMapProps) {
+export function RouteMap({ addresses, optimizedRoute, userLocation, mapCenter, onMapLoad }: RouteMapProps) {
   return (
     <div className="h-full w-full">
         <Map
@@ -205,7 +212,7 @@ export function RouteMap({ addresses, optimizedRoute, userLocation, mapCenter }:
             mapId="routeWiseMap"
             className="h-full w-full"
             >
-            <MapView addresses={addresses} optimizedRoute={optimizedRoute} mapCenter={mapCenter} userLocation={userLocation} />
+            <MapView addresses={addresses} optimizedRoute={optimizedRoute} mapCenter={mapCenter} userLocation={userLocation} onMapLoad={onMapLoad} />
         </Map>
     </div>
   );
