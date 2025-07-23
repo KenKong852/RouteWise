@@ -22,48 +22,48 @@ export function ManualAddressForm({ onAddressAdd, userLocation }: ManualAddressF
   const autocompleteInstance = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
-    if (autocompleteInputRef.current && window.google && window.google.maps && window.google.maps.places) {
-      const options: {
-        fields: string[];
-        types: string[];
-        bounds?: google.maps.LatLngBounds;
-      } = {
+    // Ensure the Google Maps script is loaded and the input ref is available.
+    if (!autocompleteInputRef.current || !window.google || !window.google.maps || !window.google.maps.places) {
+      return;
+    }
+
+    // Initialize the Autocomplete instance once.
+    if (!autocompleteInstance.current) {
+      autocompleteInstance.current = new google.maps.places.Autocomplete(autocompleteInputRef.current, {
         fields: ["formatted_address"],
         types: ["address"],
-      };
+      });
 
-      if (userLocation) {
+      // Add the place_changed listener.
+      autocompleteInstance.current.addListener('place_changed', () => {
+        const place = autocompleteInstance.current?.getPlace();
+        if (place && place.formatted_address) {
+          onAddressAdd(place.formatted_address);
+          setManualAddress(''); // Clear the input field after selection.
+        }
+      });
+    }
+
+    // Update the bounds whenever the userLocation changes.
+    const options: { bounds?: google.maps.LatLngBounds } = {};
+    if (userLocation) {
         const circle = new google.maps.Circle({
             center: userLocation,
             radius: 50 * 1000, // 50km
         });
         options.bounds = circle.getBounds()!;
-      }
-
-      if (autocompleteInstance.current) {
-        // If autocomplete already exists, just update the bounds
-        autocompleteInstance.current.setOptions(options);
-      } else {
-        // Otherwise, create a new instance
-        autocompleteInstance.current = new (window as any).google.maps.places.Autocomplete(autocompleteInputRef.current, options);
-
-        autocompleteInstance.current.addListener('place_changed', () => {
-          const place = autocompleteInstance.current?.getPlace();
-          if (place && place.formatted_address) {
-            onAddressAdd(place.formatted_address);
-            setManualAddress('');
-          }
-        });
-      }
     }
-
+    autocompleteInstance.current.setOptions(options);
+    
+    // Cleanup function to remove listeners when the component unmounts.
     return () => {
-      if (autocompleteInstance.current) {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
-      }
+        if (autocompleteInstance.current) {
+            // The `clearInstanceListeners` is a static method on google.maps.event.
+            (window as any).google.maps.event.clearInstanceListeners(autocompleteInstance.current);
+        }
     };
   }, [userLocation, onAddressAdd]);
+
 
   const handleManualAdd = () => {
     if (manualAddress.trim()) {
