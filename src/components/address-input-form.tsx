@@ -1,10 +1,10 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, Camera, LocateFixed } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
@@ -12,53 +12,11 @@ import { recognizeAddressAction } from '@/lib/actions';
 
 interface ManualAddressFormProps {
   onAddressAdd: (address: string) => void;
-  map: google.maps.Map | null;
 }
 
-export function ManualAddressForm({ onAddressAdd, map }: ManualAddressFormProps) {
+export function ManualAddressForm({ onAddressAdd }: ManualAddressFormProps) {
   const [manualAddress, setManualAddress] = useState('');
   const { toast } = useToast();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const searchBoxRef = useRef<google.maps.places.SearchBox | null>(null);
-
-  useEffect(() => {
-    if (!map || !inputRef.current || !window.google || !window.google.maps || !window.google.maps.places) {
-      return;
-    }
-
-    if (!searchBoxRef.current) {
-        const searchBox = new google.maps.places.SearchBox(inputRef.current);
-        searchBoxRef.current = searchBox;
-
-        const boundsChangedListener = map.addListener("bounds_changed", () => {
-            searchBox.setBounds(map.getBounds() as google.maps.LatLngBounds);
-        });
-
-        searchBox.addListener('places_changed', () => {
-            const places = searchBox.getPlaces();
-
-            if (!places || places.length === 0) {
-              return;
-            }
-
-            const place = places[0];
-            
-            if (place && place.formatted_address) {
-                onAddressAdd(place.formatted_address);
-                setManualAddress(''); // Clear input after selection
-            }
-        });
-        
-        // Cleanup
-        return () => {
-            if ((window as any).google) {
-                (window as any).google.maps.event.removeListener(boundsChangedListener);
-            }
-        };
-    }
-
-  }, [map, onAddressAdd]);
-
 
   const handleManualAdd = () => {
     if (manualAddress.trim()) {
@@ -81,7 +39,7 @@ export function ManualAddressForm({ onAddressAdd, map }: ManualAddressFormProps)
       <CardContent>
         <div className="flex gap-2">
           <Input
-            ref={inputRef}
+            id="manual-address-input"
             type="text"
             placeholder="Enter an address"
             value={manualAddress}
