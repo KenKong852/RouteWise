@@ -30,7 +30,7 @@ export function ManualAddressForm({ onAddressAdd, map }: ManualAddressFormProps)
         const searchBox = new google.maps.places.SearchBox(inputRef.current);
         searchBoxRef.current = searchBox;
 
-        map.addListener("bounds_changed", () => {
+        const boundsChangedListener = map.addListener("bounds_changed", () => {
             searchBox.setBounds(map.getBounds() as google.maps.LatLngBounds);
         });
 
@@ -48,22 +48,14 @@ export function ManualAddressForm({ onAddressAdd, map }: ManualAddressFormProps)
                 setManualAddress(''); // Clear input after selection
             }
         });
+        
+        // Cleanup
+        return () => {
+            if ((window as any).google) {
+                (window as any).google.maps.event.removeListener(boundsChangedListener);
+            }
+        };
     }
-
-    // Bias search results to map viewport
-    if(map.getBounds()) {
-        searchBoxRef.current.setBounds(map.getBounds() as google.maps.LatLngBounds);
-    }
-    
-    // Cleanup
-    return () => {
-        if (searchBoxRef.current) {
-            // Static method to clear all listeners on the object
-            (window as any).google.maps.event.clearInstanceListeners(searchBoxRef.current);
-        }
-        // Also clear the bounds_changed listener from the map
-        (window as any).google.maps.event.clearInstanceListeners(map);
-    };
 
   }, [map, onAddressAdd]);
 
