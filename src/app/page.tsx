@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ManualAddressForm } from '@/components/manual-address-form';
-import { LocationSetter } from '@/components/location-setter';
+import { AddressInputForm } from '@/components/address-input-form';
 import { AddressList } from '@/components/address-list';
 import { RouteMap } from '@/components/route-map';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 import { APIProvider } from '@vis.gl/react-google-maps';
+import { getCountryFromCoordinates } from '@/lib/utils';
 
 export default function HomePage() {
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -29,17 +29,48 @@ export default function HomePage() {
   
   const { toast } = useToast();
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  
-  const handleLocationSet = (location: { lat: number; lng: number; country: string }) => {
-    setUserLocation(location);
-    setMapCenter(location);
-    setCountry(location.country);
-    toast({
-      title: "Location Set",
-      description: "Your location has been updated.",
-    });
-  };
 
+  useEffect(() => {
+    const setDefaultLocation = () => {
+      const torontoLocation = { lat: 43.6532, lng: -79.3832 };
+      setUserLocation(torontoLocation);
+      setMapCenter(torontoLocation);
+      setCountry("CA");
+      toast({
+        title: "Location Not Available",
+        description: "Map has been defaulted to Toronto, Canada.",
+        variant: "default",
+      });
+    };
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          const location = {
+            lat: latitude,
+            lng: longitude,
+          };
+          setUserLocation(location);
+          setMapCenter(location);
+          try {
+            const countryCode = await getCountryFromCoordinates(latitude, longitude);
+            setCountry(countryCode);
+          } catch (e) {
+            console.error("Could not get country from coordinates, defaulting.", e);
+            setDefaultLocation();
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setDefaultLocation();
+        }
+      );
+    } else {
+      setDefaultLocation();
+     }
+  }, [toast]);
+  
   const handleActiveSnapPointChange = (snapPoint: number | string | null) => {
     setActiveSnapPoint(snapPoint);
     if (snapPoint === 0.15) {
@@ -72,6 +103,14 @@ export default function HomePage() {
     setOptimizedRoute([]);
     setOptimizedRouteReasoning(null);
     setError(null);
+  };
+  
+  const handleRecenter = (coords: { lat: number, lng: number }) => {
+    setMapCenter(coords);
+    toast({
+      title: "Map Relocated",
+      description: "The map has been centered to your current location.",
+    });
   };
 
   const handleOptimizeRoute = async () => {
@@ -142,16 +181,23 @@ export default function HomePage() {
             activeSnapPoint={activeSnapPoint}
             onActiveSnapPointChange={handleActiveSnapPointChange}
           >
-            <DrawerContent className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm">
+            <DrawerContent 
+              className="z-20 max-h-[90vh] flex flex-col bg-card/95 backdrop-blur-sm"
+              onPointerDownOutside={(event) => {
+                const target = event.target as HTMLElement;
+                if (target.closest('.pac-container')) {
+                  event.preventDefault();
+                }
+              }}
+            >
               <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
                 <DrawerHeader className="text-left">
                     <DrawerTitle>Plan Your Route</DrawerTitle>
-                    <DrawerDescription>Set your location, add addresses and optimize your journey.</DrawerDescription>
+                    <DrawerDescription>Add addresses and optimize your journey.</DrawerDescription>
                 </DrawerHeader>
                 <div className="flex-grow overflow-y-auto p-4 min-h-[100px]">
                     <div className="space-y-6 max-w-2xl mx-auto">
-                        <LocationSetter onLocationSet={handleLocationSet} />
-                        <ManualAddressForm onAddressAdd={handleAddressAdd} country={country} />
+                        <AddressInputForm onAddressAdd={handleAddressAdd} onRecenter={handleRecenter} country={country} />
                         <AddressList addresses={addresses} onAddressRemove={handleAddressRemove} />
                         
                         <div className="flex gap-2">
